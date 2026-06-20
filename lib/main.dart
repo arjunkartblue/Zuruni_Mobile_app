@@ -22,11 +22,13 @@ class BookWellApp extends StatelessWidget {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return MaterialApp(
-          key: ValueKey(appState.isLoggedIn),
+          key: ValueKey('${appState.isLoggedIn}_${appState.isGuest}'),
           title: 'BookWell Mobile',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
-          home: appState.isLoggedIn ? const MainNavigationShell() : const LoginScreen(),
+          home: (appState.isLoggedIn || appState.isGuest)
+              ? const MainNavigationShell()
+              : const LoginScreen(),
         );
       },
     );

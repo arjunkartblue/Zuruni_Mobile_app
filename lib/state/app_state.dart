@@ -54,6 +54,7 @@ class Appointment {
 class AppState extends ChangeNotifier {
   // Auth state
   bool _isLoggedIn = false;
+  bool _isGuest = false;
   String _userName = "";
   String _userEmail = "";
   String _userPhone = "";
@@ -124,6 +125,7 @@ class AppState extends ChangeNotifier {
 
   // Getters
   bool get isLoggedIn => _isLoggedIn;
+  bool get isGuest => _isGuest;
   String get userName => _userName;
   String get userEmail => _userEmail;
   String get userPhone => _userPhone;
@@ -141,8 +143,15 @@ class AppState extends ChangeNotifier {
   }
 
   // Setters & Actions
+  void continueAsGuest() {
+    _isGuest = true;
+    _isLoggedIn = false;
+    notifyListeners();
+  }
+
   void login(String email, String password) {
     _isLoggedIn = true;
+    _isGuest = false;
     _userName = "Alex Mercer";
     _userEmail = email;
     _userPhone = "+1 (555) 019-2834";
@@ -151,6 +160,7 @@ class AppState extends ChangeNotifier {
 
   void signup(String name, String email, String phone, String password) {
     _isLoggedIn = true;
+    _isGuest = false;
     _userName = name;
     _userEmail = email;
     _userPhone = phone;
@@ -159,6 +169,7 @@ class AppState extends ChangeNotifier {
 
   void logout() {
     _isLoggedIn = false;
+    _isGuest = false;
     _userName = "";
     _userEmail = "";
     _userPhone = "";

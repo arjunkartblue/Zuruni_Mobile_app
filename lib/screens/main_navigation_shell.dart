@@ -42,12 +42,14 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       elevation: 0.5,
       backgroundColor: AppTheme.surfaceColor,
       surfaceTintColor: Colors.transparent,
-      leading: IconButton(
-        icon: const Icon(Icons.menu, color: AppTheme.onSurfaceColor),
-        onPressed: () {
-          // Open menu drawer
-          Scaffold.of(context).openDrawer();
-        },
+      leading: Builder(
+        builder: (context) => IconButton(
+          icon: const Icon(Icons.menu, color: AppTheme.onSurfaceColor),
+          onPressed: () {
+            // Open menu drawer
+            Scaffold.of(context).openDrawer();
+          },
+        ),
       ),
       actions: [
         IconButton(

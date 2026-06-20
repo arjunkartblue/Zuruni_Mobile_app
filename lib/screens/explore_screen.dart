@@ -234,9 +234,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "Upcoming Appointments",
-                    style: theme.textTheme.headlineSmall,
+                  Expanded(
+                    child: Text(
+                      "Upcoming Appointments",
+                      style: theme.textTheme.headlineSmall,
+                    ),
                   ),
                   TextButton(
                     onPressed: () {
@@ -302,29 +304,33 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        appointment.category.toUpperCase(),
-                                        style: GoogleFonts.jetBrainsMono(
-                                          color: isVerified ? Colors.white.withOpacity(0.8) : AppTheme.onSurfaceVariant,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1.0,
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          appointment.category.toUpperCase(),
+                                          style: GoogleFonts.jetBrainsMono(
+                                            color: isVerified ? Colors.white.withOpacity(0.8) : AppTheme.onSurfaceVariant,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.0,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        appointment.professionalName,
-                                        style: GoogleFonts.hankenGrotesk(
-                                          color: isVerified ? Colors.white : AppTheme.onSurfaceColor,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          appointment.professionalName,
+                                          style: GoogleFonts.hankenGrotesk(
+                                            color: isVerified ? Colors.white : AppTheme.onSurfaceColor,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
+                                  const SizedBox(width: 8),
                                   Container(
                                     padding: const EdgeInsets.all(8.0),
                                     decoration: BoxDecoration(
@@ -339,37 +345,49 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   ),
                                 ],
                               ),
-                              Row(
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 12.0,
+                                runSpacing: 4.0,
                                 children: [
-                                  Icon(
-                                    Icons.calendar_today_outlined,
-                                    size: 14,
-                                    color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.calendar_today_outlined,
+                                        size: 14,
+                                        color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        "${appointment.date.month}/${appointment.date.day}/${appointment.date.year}",
+                                        style: TextStyle(
+                                          color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    "${appointment.date.month}/${appointment.date.day}/${appointment.date.year}",
-                                    style: TextStyle(
-                                      color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Icon(
-                                    Icons.access_time,
-                                    size: 14,
-                                    color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    appointment.timeSlot,
-                                    style: TextStyle(
-                                      color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
-                                      fontSize: 12,
-                                    ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.access_time,
+                                        size: 14,
+                                        color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        appointment.timeSlot,
+                                        style: TextStyle(
+                                          color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -473,9 +491,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Recommended Near You",
-                  style: theme.textTheme.headlineSmall,
+                Expanded(
+                  child: Text(
+                    "Recommended Near You",
+                    style: theme.textTheme.headlineSmall,
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.filter_list),

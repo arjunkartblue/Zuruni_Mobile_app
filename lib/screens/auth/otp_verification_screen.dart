@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../theme/theme.dart';
 import '../../state/app_state.dart';
 import 'reset_password_screen.dart';
+import 'account_created_screen.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String? name;
@@ -27,11 +28,12 @@ class OtpVerificationScreen extends StatefulWidget {
 }
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
-  final List<TextEditingController> _controllers = List.generate(4, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
+  final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
   int _secondsRemaining = 59;
   Timer? _timer;
   bool _canResend = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -72,36 +74,29 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
   void _verifyCode() {
     String code = _controllers.map((c) => c.text).join();
-    if (code.length < 4) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter the complete 4-digit code"),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
+    if (code.length < 6) {
+      setState(() {
+        _errorMessage = "Please enter the complete 6-digit code";
+      });
       return;
     }
 
-    // Mock validation: accept any 4 digit code (e.g. 1234)
+    // Mock validation: accept any 6 digit code
     if (widget.isPasswordReset) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const ResetPasswordScreen()),
       );
     } else {
-      // Completed Signup, save to AppState
-      final appState = Provider.of<AppState>(context, listen: false);
-      appState.signup(
-        widget.name ?? "New User",
-        widget.email ?? "user@example.com",
-        widget.phone ?? "",
-        widget.password ?? "",
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Account verified! Welcome ${appState.userName}"),
-          backgroundColor: AppTheme.successColor,
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AccountCreatedScreen(
+            name: widget.name ?? "New User",
+            email: widget.email ?? "user@example.com",
+            phone: widget.phone ?? "",
+            password: widget.password ?? "",
+          ),
         ),
       );
     }
@@ -109,49 +104,123 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final destination = widget.phone != null && widget.phone!.isNotEmpty
+        ? widget.phone
+        : widget.email;
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.onSurfaceColor),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
-              Text(
-                "OTP Verification",
-                style: GoogleFonts.hankenGrotesk(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
-                  height: 1.2,
+              // Top Header Row with Back Button and Centered Title
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Positioned(
+                        left: 0,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back, color: AppTheme.onSurfaceColor),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+                      Text(
+                        "BookWell",
+                        style: GoogleFonts.hankenGrotesk(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                "Enter the 4-digit code sent to your phone number ${widget.phone ?? ''}",
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  color: AppTheme.onSurfaceVariant,
+
+              // Centered Header & Subheader
+              Center(
+                child: Column(
+                  children: [
+                    // Circular Icon Container above the heading
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.security_outlined,
+                        color: AppTheme.primaryColor,
+                        size: 40,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      "Verify Identity",
+                      style: GoogleFonts.hankenGrotesk(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF18181B),
+                        height: 1.2,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                     const SizedBox(height: 12),
+                    Text.rich(
+                      TextSpan(
+                        text: "We've sent a 6-digit code to\n",
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          color: AppTheme.onSurfaceVariant,
+                          height: 1.4,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: destination ?? '',
+                            style: GoogleFonts.inter(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.onSurfaceColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Text(
+                        "Edit email or phone number",
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 48),
 
-              // 4 Digits OTP Row
+              // 6 Digits OTP Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(4, (index) {
+                children: List.generate(6, (index) {
                   return SizedBox(
-                    width: 60,
-                    height: 60,
+                    width: 46,
+                    height: 58,
                     child: TextFormField(
                       controller: _controllers[index],
                       focusNode: _focusNodes[index],
@@ -159,13 +228,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                       keyboardType: TextInputType.number,
                       maxLength: 1,
                       style: GoogleFonts.hankenGrotesk(
-                        fontSize: 24,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.onSurfaceColor,
                       ),
                       decoration: InputDecoration(
                         counterText: "",
                         fillColor: Colors.white,
+                        contentPadding: EdgeInsets.zero,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppTheme.radiusXl),
                           borderSide: const BorderSide(color: AppTheme.outlineVariantColor),
@@ -176,7 +246,12 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         ),
                       ),
                       onChanged: (value) {
-                        if (value.isNotEmpty && index < 3) {
+                        if (_errorMessage != null) {
+                          setState(() {
+                            _errorMessage = null;
+                          });
+                        }
+                        if (value.isNotEmpty && index < 5) {
                           _focusNodes[index + 1].requestFocus();
                         } else if (value.isEmpty && index > 0) {
                           _focusNodes[index - 1].requestFocus();
@@ -189,31 +264,59 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   );
                 }),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
-              // Timer / Resend Links
+              // Inline Error Message Space
+              SizedBox(
+                height: 24,
+                child: _errorMessage != null
+                    ? Center(
+                        child: Text(
+                          _errorMessage!,
+                          style: GoogleFonts.inter(
+                            color: AppTheme.errorColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+              const SizedBox(height: 32),
+
+              // Timer / Resend Links (Didn't receive the code?)
               Center(
-                child: Column(
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
+                    Text(
+                      "Didn't receive the code? ",
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: AppTheme.onSurfaceVariant,
+                      ),
+                    ),
                     if (!_canResend)
                       Text(
-                        "Resend code in 00:${_secondsRemaining.toString().padLeft(2, '0')}",
+                        "Resend in 00:${_secondsRemaining.toString().padLeft(2, '0')}",
                         style: GoogleFonts.inter(
+                          color: AppTheme.outlineColor,
+                          fontWeight: FontWeight.bold,
                           fontSize: 14,
-                          color: AppTheme.onSurfaceVariant,
                         ),
                       )
                     else
-                      TextButton(
-                        onPressed: () {
+                      GestureDetector(
+                        onTap: () {
                           _startTimer();
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text("Mock OTP code resent successfully!")),
                           );
                         },
-                        child: const Text(
+                        child: Text(
                           "Resend Code",
-                          style: TextStyle(
+                          style: GoogleFonts.inter(
                             color: AppTheme.primaryColor,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -223,7 +326,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 24),
 
               // Verify Button
               SizedBox(
@@ -231,7 +334,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 height: 52,
                 child: ElevatedButton(
                   onPressed: _verifyCode,
-                  child: const Text("VERIFY"),
+                  child: const Text("Verify & Continue"),
                 ),
               ),
             ],

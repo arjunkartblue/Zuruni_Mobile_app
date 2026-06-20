@@ -18,7 +18,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool _obscureConfirmPassword = true;
 
   @override
+  void initState() {
+    super.initState();
+    _passwordController.addListener(_onPasswordChanged);
+  }
+
+  void _onPasswordChanged() {
+    setState(() {});
+  }
+
+  @override
   void dispose() {
+    _passwordController.removeListener(_onPasswordChanged);
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -42,18 +53,64 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     }
   }
 
+  Widget _buildRequirementItem(String text, bool isMet) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3.0),
+      child: Row(
+        children: [
+          Icon(
+            isMet ? Icons.check_circle : Icons.circle_outlined,
+            color: isMet ? AppTheme.successColor : AppTheme.outlineColor,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: isMet ? AppTheme.successColor : AppTheme.onSurfaceVariant,
+                fontWeight: isMet ? FontWeight.w500 : FontWeight.normal,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPasswordRequirements() {
+    final password = _passwordController.text;
+    final hasMinLength = password.length >= 8;
+    final hasUppercase = password.contains(RegExp(r'[A-Z]'));
+    final hasNumber = password.contains(RegExp(r'[0-9]'));
+    final hasSpecial = password.contains(RegExp(r'[!@#\$&*~%^()+=_{}\[\]:;""<>,.?/|-]'));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        Text(
+          "Password must contain:",
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.onSurfaceColor,
+          ),
+        ),
+        const SizedBox(height: 6),
+        _buildRequirementItem("At least 8 characters", hasMinLength),
+        _buildRequirementItem("At least one uppercase letter (A-Z)", hasUppercase),
+        _buildRequirementItem("At least one number (0-9)", hasNumber),
+        _buildRequirementItem("At least one special character", hasSpecial),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.onSurfaceColor),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -62,22 +119,60 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20),
-                Text(
-                  "Reset Password",
-                  style: GoogleFonts.hankenGrotesk(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor,
-                    height: 1.2,
+                // Top Header Row with Back Button and Centered Title
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 24.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Positioned(
+                          left: 0,
+                          child: IconButton(
+                            icon: const Icon(Icons.arrow_back, color: AppTheme.onSurfaceColor),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
+                        Text(
+                          "BookWell",
+                          style: GoogleFonts.hankenGrotesk(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryColor,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  "Create a new secure password for your BookWell account",
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    color: AppTheme.onSurfaceVariant,
+
+                // Centered Header & Subheader
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        "Set New Password",
+                        style: GoogleFonts.hankenGrotesk(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF18181B),
+                          height: 1.2,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Create a new secure password for your account",
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          color: AppTheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -96,7 +191,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
-                    hintText: "••••••••",
+                    hintText: "Enter new password",
                     prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.outlineColor),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -114,12 +209,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a password';
                     }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
+                    if (value.length < 8) {
+                      return 'Password must be at least 8 characters';
                     }
                     return null;
                   },
                 ),
+                _buildPasswordRequirements(),
                 const SizedBox(height: 24),
 
                 // Confirm Password Field
@@ -136,7 +232,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
-                    hintText: "••••••••",
+                    hintText: "Confirm new password",
                     prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.outlineColor),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -168,7 +264,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   height: 52,
                   child: ElevatedButton(
                     onPressed: _submit,
-                    child: const Text("RESET PASSWORD"),
+                    child: const Text("Reset Password"),
                   ),
                 ),
               ],

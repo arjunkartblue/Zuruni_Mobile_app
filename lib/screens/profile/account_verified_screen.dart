@@ -11,10 +11,39 @@ class AccountVerifiedScreen extends StatelessWidget {
       backgroundColor: AppTheme.backgroundColor,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Top Header Row with Back Button and Centered Title
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Positioned(
+                        left: 0,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back, color: AppTheme.onSurfaceColor),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+                      Text(
+                        "BookWell",
+                        style: GoogleFonts.hankenGrotesk(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const Spacer(),
               
               // Celebration Icon
@@ -40,7 +69,7 @@ class AccountVerifiedScreen extends StatelessWidget {
                 style: GoogleFonts.hankenGrotesk(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
+                  color: const Color(0xFF18181B),
                 ),
               ),
               const SizedBox(height: 12),
