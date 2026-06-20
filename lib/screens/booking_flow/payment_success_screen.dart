@@ -110,7 +110,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> with Single
                     _buildRow("Professional", widget.appointment.professionalName),
                     _buildRow(
                       "Date & Time",
-                      "${widget.appointment.date.month}/${widget.appointment.date.day}/${widget.appointment.date.year} at ${widget.appointment.timeSlot}",
+                      "${AppTheme.formatDate(widget.appointment.date)} at ${widget.appointment.timeSlot}",
                     ),
                     const Divider(height: 24),
                     

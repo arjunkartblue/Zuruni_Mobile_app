@@ -7,6 +7,7 @@ import '../state/app_state.dart';
 import 'explore_screen.dart';
 import 'my_appointments_screen.dart';
 import 'profile_screen.dart';
+import 'profile/edit_profile_screen.dart';
 import 'auth/login_screen.dart';
 
 class MainNavigationShell extends StatefulWidget {
@@ -48,43 +49,62 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           },
         ),
       ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications_none_outlined, color: AppTheme.onSurfaceColor),
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("No new notifications")),
-            );
-          },
-        ),
-        GestureDetector(
-          onTap: () {
-            if (appState.isLoggedIn) {
-              setState(() {
-                _currentIndex = 2; // Navigate to Profile
-              });
-            } else {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
-            }
-          },
-          child: Padding(
-            padding: const EdgeInsets.only(right: 16.0, left: 8.0),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundColor: AppTheme.surfaceContainerColor,
-              backgroundImage: appState.isLoggedIn
-                  ? const NetworkImage('https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120')
-                  : null,
-              child: !appState.isLoggedIn
-                  ? const Icon(Icons.person_outline, size: 20, color: AppTheme.onSurfaceColor)
-                  : null,
-            ),
-          ),
-        ),
-      ],
+      actions: _currentIndex == 2
+          ? [
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                  );
+                },
+                child: const Text(
+                  "Edit",
+                  style: TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ]
+          : [
+              IconButton(
+                icon: const Icon(Icons.notifications_none_outlined, color: AppTheme.onSurfaceColor),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("No new notifications")),
+                  );
+                },
+              ),
+              GestureDetector(
+                onTap: () {
+                  if (appState.isLoggedIn) {
+                    setState(() {
+                      _currentIndex = 2; // Navigate to Profile
+                    });
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    );
+                  }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16.0, left: 8.0),
+                  child: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: AppTheme.surfaceContainerColor,
+                    backgroundImage: appState.isLoggedIn
+                        ? const NetworkImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240')
+                        : null,
+                    child: !appState.isLoggedIn
+                        ? const Icon(Icons.person_outline, size: 20, color: AppTheme.onSurfaceColor)
+                        : null,
+                  ),
+                ),
+              ),
+            ],
     );
 
     // If visiting a protected tab while logged out, show Login Required page
@@ -240,7 +260,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             currentAccountPicture: CircleAvatar(
               backgroundColor: AppTheme.surfaceContainerColor,
               backgroundImage: appState.isLoggedIn
-                  ? const NetworkImage('https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120')
+                  ? const NetworkImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240')
                   : null,
               child: !appState.isLoggedIn
                   ? const Icon(Icons.person_outline, size: 36, color: AppTheme.primaryColor)
@@ -275,6 +295,26 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
               setState(() {
                 _currentIndex = 2;
               });
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.help_outline, color: AppTheme.primaryColor),
+            title: const Text('Help & FAQ'),
+            onTap: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Help & FAQ center loaded")),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.shield_outlined, color: AppTheme.primaryColor),
+            title: const Text('Privacy & Terms'),
+            onTap: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Privacy Policy & Terms loaded")),
+              );
             },
           ),
           const Divider(),

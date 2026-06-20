@@ -360,7 +360,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
-                                        "${appointment.date.month}/${appointment.date.day}/${appointment.date.year}",
+                                        AppTheme.formatDate(appointment.date),
                                         style: TextStyle(
                                           color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
                                           fontSize: 12,

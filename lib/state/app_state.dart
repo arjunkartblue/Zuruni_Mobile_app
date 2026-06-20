@@ -51,18 +51,44 @@ class Appointment {
   }
 }
 
+class VerificationDocument {
+  final String type;
+  final String status; // "Verified", "Pending"
+  final String idNumber;
+  final String fileName;
+
+  VerificationDocument({
+    required this.type,
+    required this.status,
+    required this.idNumber,
+    required this.fileName,
+  });
+}
+
 class AppState extends ChangeNotifier {
   // Auth state
   bool _isLoggedIn = false;
   bool _isGuest = false;
-  String _userName = "";
-  String _userEmail = "";
-  String _userPhone = "";
+  String _userName = "Alex Johnson";
+  String _userEmail = "alex.j@example.com";
+  String _userPhone = "+1 (555) 0199";
+  String _userCountry = "India";
   
-  // Profile verification state
-  VerificationStatus _verificationStatus = VerificationStatus.none;
-  String _uploadedDocType = "";
-  String _uploadedDocName = "";
+  // Document verification list
+  final List<VerificationDocument> _documents = [
+    VerificationDocument(
+      type: "Aadhaar Card",
+      status: "Verified",
+      idNumber: "1234-5678-9012",
+      fileName: "aadhaar_front.jpg",
+    ),
+    VerificationDocument(
+      type: "Passport",
+      status: "Pending",
+      idNumber: "Z1234567",
+      fileName: "passport_front.jpg",
+    ),
+  ];
 
   // Mock list of appointments
   final List<Appointment> _appointments = [
@@ -129,9 +155,21 @@ class AppState extends ChangeNotifier {
   String get userName => _userName;
   String get userEmail => _userEmail;
   String get userPhone => _userPhone;
-  VerificationStatus get verificationStatus => _verificationStatus;
-  String get uploadedDocType => _uploadedDocType;
-  String get uploadedDocName => _uploadedDocName;
+  String get userCountry => _userCountry;
+  List<VerificationDocument> get documents => _documents;
+
+  VerificationStatus get verificationStatus {
+    if (_documents.any((doc) => doc.status == "Verified")) {
+      return VerificationStatus.verified;
+    } else if (_documents.any((doc) => doc.status == "Pending")) {
+      return VerificationStatus.pending;
+    }
+    return VerificationStatus.none;
+  }
+  
+  String get uploadedDocType => _documents.isNotEmpty ? _documents.last.type : "";
+  String get uploadedDocName => _documents.isNotEmpty ? _documents.last.fileName : "";
+  
   List<Appointment> get appointments => _appointments.where((apt) => apt.status != "Cancelled").toList();
   List<Appointment> get cancelledAppointments => _appointments.where((apt) => apt.status == "Cancelled").toList();
   
@@ -152,9 +190,26 @@ class AppState extends ChangeNotifier {
   void login(String email, String password) {
     _isLoggedIn = true;
     _isGuest = false;
-    _userName = "Alex Mercer";
-    _userEmail = email;
-    _userPhone = "+1 (555) 019-2834";
+    _userName = "Alex Johnson";
+    _userEmail = email.isNotEmpty ? email : "alex.j@example.com";
+    _userPhone = "+1 (555) 0199";
+    _userCountry = "India";
+    
+    _documents.clear();
+    _documents.addAll([
+      VerificationDocument(
+        type: "Aadhaar Card",
+        status: "Verified",
+        idNumber: "1234-5678-9012",
+        fileName: "aadhaar_front.jpg",
+      ),
+      VerificationDocument(
+        type: "Passport",
+        status: "Pending",
+        idNumber: "Z1234567",
+        fileName: "passport_front.jpg",
+      ),
+    ]);
     notifyListeners();
   }
 
@@ -164,6 +219,23 @@ class AppState extends ChangeNotifier {
     _userName = name;
     _userEmail = email;
     _userPhone = phone;
+    _userCountry = "India";
+    
+    _documents.clear();
+    _documents.addAll([
+      VerificationDocument(
+        type: "Aadhaar Card",
+        status: "Verified",
+        idNumber: "1234-5678-9012",
+        fileName: "aadhaar_front.jpg",
+      ),
+      VerificationDocument(
+        type: "Passport",
+        status: "Pending",
+        idNumber: "Z1234567",
+        fileName: "passport_front.jpg",
+      ),
+    ]);
     notifyListeners();
   }
 
@@ -173,29 +245,73 @@ class AppState extends ChangeNotifier {
     _userName = "";
     _userEmail = "";
     _userPhone = "";
-    _verificationStatus = VerificationStatus.none;
-    _uploadedDocType = "";
-    _uploadedDocName = "";
+    _userCountry = "India";
+    _documents.clear();
     notifyListeners();
   }
 
-  void updateProfile({required String name, required String phone, required String email}) {
+  void updateProfile({
+    required String name,
+    required String phone,
+    required String email,
+    required String country,
+  }) {
     _userName = name;
     _userPhone = phone;
     _userEmail = email;
+    _userCountry = country;
     notifyListeners();
   }
 
-  void uploadId(String docType, String docName) {
-    _verificationStatus = VerificationStatus.pending;
-    _uploadedDocType = docType;
-    _uploadedDocName = docName;
-    notifyListeners();
+  void addOrUpdateDocument({
+    required String type,
+    required String idNumber,
+    required String fileName,
+    required String status,
+  }) {
+    final index = _documents.indexWhere((doc) => 
+      doc.type.toLowerCase() == type.toLowerCase() ||
+      doc.type.replaceAll(" Card", "").toLowerCase() == type.replaceAll(" Card", "").toLowerCase()
+    );
 
-    // Simulate auto-verification success after 5 seconds
+    final newDoc = VerificationDocument(
+      type: type,
+      status: status,
+      idNumber: idNumber,
+      fileName: fileName,
+    );
+
+    if (index != -1) {
+      _documents[index] = newDoc;
+    } else {
+      _documents.add(newDoc);
+    }
+    notifyListeners();
+  }
+
+  void uploadId(String docType, String docName, {String idNumber = ""}) {
+    final formattedType = docType.endsWith("Card") || docType.toLowerCase() == "passport" 
+        ? docType 
+        : "$docType Card";
+    
+    addOrUpdateDocument(
+      type: formattedType,
+      idNumber: idNumber.isNotEmpty ? idNumber : "MOCK-${1000 + (DateTime.now().millisecond) % 9000}",
+      fileName: docName,
+      status: "Pending",
+    );
+
+    // Simulate auto-verification success after 6 seconds
     Future.delayed(const Duration(seconds: 6), () {
-      if (_verificationStatus == VerificationStatus.pending) {
-        _verificationStatus = VerificationStatus.verified;
+      final index = _documents.indexWhere((doc) => doc.type.toLowerCase() == formattedType.toLowerCase());
+      if (index != -1 && _documents[index].status == "Pending") {
+        final existing = _documents[index];
+        _documents[index] = VerificationDocument(
+          type: existing.type,
+          status: "Verified",
+          idNumber: existing.idNumber,
+          fileName: existing.fileName,
+        );
         notifyListeners();
       }
     });

@@ -749,7 +749,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
               _buildSummaryRow("Service", appState.selectedService ?? ""),
               _buildSummaryRow(
                 "Date & Time",
-                "${_selectedDate.month}/${_selectedDate.day}/${_selectedDate.year} at $_selectedTimeSlot",
+                "${AppTheme.formatDate(_selectedDate)} at $_selectedTimeSlot",
               ),
               _buildSummaryRow("Purpose", _visitorPurpose),
               _buildSummaryRow("Parking", _parkingNeeded ? "Requested (Assigned on arrival)" : "Not Required"),

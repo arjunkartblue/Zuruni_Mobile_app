@@ -171,4 +171,10 @@ class AppTheme {
       ),
     );
   }
+
+  static String formatDate(DateTime date) {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    final dayStr = date.day.toString().padLeft(2, '0');
+    return "${months[date.month - 1]} $dayStr, ${date.year}";
+  }
 }

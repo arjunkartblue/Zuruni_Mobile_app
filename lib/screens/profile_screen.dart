@@ -3,314 +3,285 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/theme.dart';
 import '../state/app_state.dart';
-import 'profile/identity_verification_screen.dart';
+import 'profile/edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final theme = Theme.of(context);
+    final isAccountVerified = appState.verificationStatus == VerificationStatus.verified;
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // User Bio Info Header
-          Row(
-            children: [
-              const CircleAvatar(
-                radius: 36,
-                backgroundColor: AppTheme.surfaceContainerColor,
-                backgroundImage: NetworkImage('https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120'),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      appState.userName,
-                      style: GoogleFonts.hankenGrotesk(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.onSurfaceColor,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      appState.userEmail,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppTheme.onSurfaceVariant,
-                      ),
-                    ),
-                    Text(
-                      appState.userPhone,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppTheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 28),
-
-          // Identity Verification Banner
-          _buildVerificationBanner(context, appState),
-          const SizedBox(height: 24),
-
-          // Menu Options
-          Text(
-            "Account Settings",
-            style: theme.textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 12),
-          _buildMenuCard(
-            context,
-            items: [
-              _buildMenuItem(Icons.person_outline, "Edit Profile Information", () {
-                _showEditProfileDialog(context, appState);
-              }),
-              _buildMenuItem(Icons.calendar_month_outlined, "Sync External Calendars", () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Google Calendar sync connected")),
-                );
-              }),
-              _buildMenuItem(Icons.notifications_none_outlined, "Notification Settings", () {}),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          Text(
-            "Support",
-            style: theme.textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 12),
-          _buildMenuCard(
-            context,
-            items: [
-              _buildMenuItem(Icons.help_outline, "Help & FAQ", () {}),
-              _buildMenuItem(Icons.shield_outlined, "Privacy Policy & Terms", () {}),
-            ],
-          ),
-          const SizedBox(height: 32),
-
-          // Logout Button
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppTheme.errorColor),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                ),
-              ),
-              onPressed: () {
-                appState.logout();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Logged out successfully")),
-                );
-              },
-              child: const Text(
-                "LOG OUT",
-                style: TextStyle(color: AppTheme.errorColor, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-          const SizedBox(height: 40),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildVerificationBanner(BuildContext context, AppState appState) {
-    Color bannerBg;
-    Color borderColor;
-    IconData icon;
-    Color statusColor;
-    String statusTitle;
-    String statusSubtitle;
-    Widget? actionButton;
-
-    switch (appState.verificationStatus) {
-      case VerificationStatus.none:
-        bannerBg = AppTheme.errorColor.withOpacity(0.05);
-        borderColor = AppTheme.errorColor.withOpacity(0.2);
-        icon = Icons.cancel_outlined;
-        statusColor = AppTheme.errorColor;
-        statusTitle = "Identity Not Verified";
-        statusSubtitle = "Upload a government-issued ID to activate automated gate entry passes instantly.";
-        actionButton = Padding(
-          padding: const EdgeInsets.only(top: 12.0),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const IdentityVerificationScreen()),
-                );
-              },
-              child: const Text("VERIFY IDENTITY NOW"),
-            ),
-          ),
-        );
-        break;
-
-      case VerificationStatus.pending:
-        bannerBg = AppTheme.pendingColor.withOpacity(0.05);
-        borderColor = AppTheme.pendingColor.withOpacity(0.2);
-        icon = Icons.hourglass_empty;
-        statusColor = AppTheme.pendingColor;
-        statusTitle = "Verification Pending Review";
-        statusSubtitle = "Your uploaded ${appState.uploadedDocType} is undergoing automated security clearance audits. Expect approval in a few moments.";
-        break;
-
-      case VerificationStatus.verified:
-        bannerBg = AppTheme.successColor.withOpacity(0.05);
-        borderColor = AppTheme.successColor.withOpacity(0.2);
-        icon = Icons.check_circle_outline;
-        statusColor = AppTheme.successColor;
-        statusTitle = "Profile Fully Verified";
-        statusSubtitle = "Clearance protocols active. Digital QR passes will activate automatically for all confirmed appointments.";
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: bannerBg,
-        borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: statusColor, size: 24),
-              const SizedBox(width: 10),
-              Text(
-                statusTitle,
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: statusColor,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            statusSubtitle,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: AppTheme.onSurfaceVariant,
-              height: 1.3,
-            ),
-          ),
-          if (actionButton != null) actionButton,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMenuCard(BuildContext context, {required List<Widget> items}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-        border: Border.all(color: AppTheme.outlineVariantColor),
-        boxShadow: AppTheme.ambientShadow,
-      ),
-      child: Column(children: items),
-    );
-  }
-
-  Widget _buildMenuItem(IconData icon, String title, VoidCallback onTap) {
-    return ListTile(
-      leading: Icon(icon, color: AppTheme.primaryColor),
-      title: Text(
-        title,
-        style: const TextStyle(fontSize: 14, color: AppTheme.onSurfaceColor, fontWeight: FontWeight.w500),
-      ),
-      trailing: const Icon(Icons.chevron_right, color: AppTheme.outlineColor, size: 20),
-      onTap: onTap,
-    );
-  }
-
-  void _showEditProfileDialog(BuildContext context, AppState appState) {
-    final nameController = TextEditingController(text: appState.userName);
-    final phoneController = TextEditingController(text: appState.userPhone);
-    final emailController = TextEditingController(text: appState.userEmail);
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusXl)),
-          title: Text(
-            "Edit Profile Info",
-            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
-          ),
-          content: SingleChildScrollView(
+          // Profile Photo & Name Header Section
+          Center(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: "Full Name"),
+                const CircleAvatar(
+                  radius: 54,
+                  backgroundColor: AppTheme.surfaceContainerColor,
+                  backgroundImage: NetworkImage(
+                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240',
+                  ),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: emailController,
-                  decoration: const InputDecoration(labelText: "Email Address"),
+                Text(
+                  appState.userName,
+                  style: GoogleFonts.hankenGrotesk(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.onSurfaceColor,
+                  ),
                 ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: phoneController,
-                  decoration: const InputDecoration(labelText: "Phone Number"),
+                const SizedBox(height: 6),
+                
+                // Verified Account Badge Pill
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isAccountVerified ? const Color(0xFFD1FAE5) : const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isAccountVerified ? Icons.check_circle : Icons.watch_later,
+                        color: isAccountVerified ? const Color(0xFF059669) : const Color(0xFFD97706),
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        isAccountVerified ? "Verified Account" : "Verification Pending",
+                        style: TextStyle(
+                          color: isAccountVerified ? const Color(0xFF059669) : const Color(0xFFD97706),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("CANCEL", style: TextStyle(color: AppTheme.onSurfaceVariant)),
+          const SizedBox(height: 32),
+
+          // Contact Information Section
+          Text(
+            "Contact Information",
+            style: GoogleFonts.hankenGrotesk(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.onSurfaceColor,
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+          ),
+          const SizedBox(height: 12),
+
+          // Email Card
+          _buildContactCard(
+            label: "EMAIL",
+            value: appState.userEmail,
+            isVerified: true, // Email is verified during registration/login
+          ),
+          const SizedBox(height: 12),
+
+          // Phone Card
+          _buildContactCard(
+            label: "PHONE",
+            value: appState.userPhone,
+            isVerified: true, // Phone is verified
+          ),
+          const SizedBox(height: 28),
+
+          // Identity & Access Documents Section
+          Text(
+            "Identity & Access Documents",
+            style: GoogleFonts.hankenGrotesk(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.onSurfaceColor,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "Documents used for automated gate-entry verification.",
+            style: TextStyle(
+              fontSize: 13,
+              color: AppTheme.onSurfaceVariant.withOpacity(0.8),
+              height: 1.3,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Documents List
+          if (appState.documents.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.outlineVariantColor),
+              ),
+              child: const Text(
+                "No identity documents uploaded yet.",
+                style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 13),
+              ),
+            )
+          else
+            ...appState.documents.map((doc) => _buildDocumentTile(doc)),
+
+          const SizedBox(height: 32),
+
+          // Edit Profile Details Button
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
               onPressed: () {
-                appState.updateProfile(
-                  name: nameController.text,
-                  phone: phoneController.text,
-                  email: emailController.text,
-                );
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Profile details updated successfully")),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const EditProfileScreen()),
                 );
               },
-              child: const Text("SAVE"),
+              child: const Text("Edit Profile Details"),
             ),
-          ],
-        );
-      },
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContactCard({required String label, required String value, required bool isVerified}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.outlineVariantColor),
+        boxShadow: AppTheme.ambientShadow,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.onSurfaceVariant.withOpacity(0.6),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.onSurfaceColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (isVerified)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD1FAE5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Color(0xFF059669), size: 12),
+                  SizedBox(width: 4),
+                  Text(
+                    "VERIFIED",
+                    style: TextStyle(
+                      color: Color(0xFF059669),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDocumentTile(VerificationDocument doc) {
+    final isVerified = doc.status == "Verified";
+    final isAadhaar = doc.type.toLowerCase().contains("aadhaar");
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.outlineVariantColor),
+        boxShadow: AppTheme.ambientShadow,
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isAadhaar ? Icons.assignment_ind_outlined : Icons.menu_book_outlined,
+            color: AppTheme.primaryColor,
+            size: 24,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              doc.type,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.onSurfaceColor,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: isVerified ? const Color(0xFFD1FAE5) : const Color(0xFFFEF3C7),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isVerified ? Icons.check_circle : Icons.watch_later,
+                  color: isVerified ? const Color(0xFF059669) : const Color(0xFFD97706),
+                  size: 14,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  doc.status,
+                  style: TextStyle(
+                    color: isVerified ? const Color(0xFF059669) : const Color(0xFFD97706),
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 }
