@@ -9,13 +9,13 @@ void main() {
   runApp(
     ChangeNotifierProvider(
       create: (context) => AppState(),
-      child: const BookWellApp(),
+      child: const ZuruniApp(),
     ),
   );
 }
 
-class BookWellApp extends StatelessWidget {
-  const BookWellApp({Key? key}) : super(key: key);
+class ZuruniApp extends StatelessWidget {
+  const ZuruniApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class BookWellApp extends StatelessWidget {
       builder: (context, appState, child) {
         return MaterialApp(
           key: ValueKey('${appState.isLoggedIn}_${appState.isGuest}'),
-          title: 'BookWell Mobile',
+          title: 'Zuruni Mobile',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           home: (appState.isLoggedIn || appState.isGuest)

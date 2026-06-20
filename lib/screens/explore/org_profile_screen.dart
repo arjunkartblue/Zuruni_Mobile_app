@@ -144,7 +144,7 @@ class OrgProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    "BookWell verified facility offering top-tier services. Featuring digital queue pass registration, instant parking bay assignments, and smart gate access integration for visitors.",
+                    "Zuruni verified facility offering top-tier services. Featuring digital queue pass registration, instant parking bay assignments, and smart gate access integration for visitors.",
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: AppTheme.onSurfaceVariant,

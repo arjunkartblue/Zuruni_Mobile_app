@@ -8,7 +8,7 @@
 PRODUCT_NAME = zuruni_mobile_app
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.bookwell.zuruniMobileApp
+PRODUCT_BUNDLE_IDENTIFIER = com.zuruni.zuruniMobileApp
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.bookwell. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.zuruni. All rights reserved.

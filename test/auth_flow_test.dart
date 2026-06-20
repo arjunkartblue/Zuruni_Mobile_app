@@ -24,7 +24,7 @@ void main() {
   Widget buildTestWidget(AppState appState) {
     return ChangeNotifierProvider.value(
       value: appState,
-      child: const BookWellApp(),
+      child: const ZuruniApp(),
     );
   }
 
@@ -126,8 +126,8 @@ void main() {
       expect(find.byType(AccountCreatedScreen), findsOneWidget);
       expect(find.text('Account Verified'), findsOneWidget);
 
-      // Tap "Get Started" to sign in and go to main shell
-      final getStartedButton = find.widgetWithText(ElevatedButton, 'Get Started');
+      // Tap "Go to Dashboard" to sign in and go to main shell
+      final getStartedButton = find.widgetWithText(ElevatedButton, 'Go to Dashboard');
       expect(getStartedButton, findsOneWidget);
       await tester.ensureVisible(getStartedButton);
       await tester.tap(getStartedButton);

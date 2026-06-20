@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../theme/theme.dart';
 
 class AccountVerifiedScreen extends StatelessWidget {
@@ -31,14 +32,9 @@ class AccountVerifiedScreen extends StatelessWidget {
                           onPressed: () => Navigator.pop(context),
                         ),
                       ),
-                      Text(
-                        "BookWell",
-                        style: GoogleFonts.hankenGrotesk(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryColor,
-                          letterSpacing: -0.5,
-                        ),
+                      SvgPicture.asset(
+                        'assets/images/zuruni_logo.svg',
+                        height: 28,
                       ),
                     ],
                   ),

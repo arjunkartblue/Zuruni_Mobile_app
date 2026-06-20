@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../theme/theme.dart';
 import '../../state/app_state.dart';
@@ -35,14 +36,9 @@ class AccountCreatedScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 48,
                   child: Center(
-                    child: Text(
-                      "BookWell",
-                      style: GoogleFonts.hankenGrotesk(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                        letterSpacing: -0.5,
-                      ),
+                    child: SvgPicture.asset(
+                      'assets/images/zuruni_logo.svg',
+                      height: 28,
                     ),
                   ),
                 ),
@@ -102,7 +98,7 @@ class AccountCreatedScreen extends StatelessWidget {
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text("Welcome to BookWell, ${appState.userName}!"),
+                        content: Text("Welcome to Zuruni, ${appState.userName}!"),
                         backgroundColor: AppTheme.successColor,
                       ),
                     );

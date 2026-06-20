@@ -1,4 +1,4 @@
-package com.bookwell.zuruni_mobile_app
+package com.zuruni.zuruni_mobile_app
 
 import io.flutter.embedding.android.FlutterActivity
 

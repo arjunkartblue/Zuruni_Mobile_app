@@ -90,20 +90,15 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // BookWell Title in Top Center
+                // Zuruni Logo in Top Center
                 Padding(
                   padding: const EdgeInsets.only(bottom: 24.0),
                   child: SizedBox(
                     height: 48,
                     child: Center(
-                      child: Text(
-                        "BookWell",
-                        style: GoogleFonts.hankenGrotesk(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryColor,
-                          letterSpacing: -0.5,
-                        ),
+                      child: SvgPicture.asset(
+                        'assets/images/zuruni_logo.svg',
+                        height: 28,
                       ),
                     ),
                   ),

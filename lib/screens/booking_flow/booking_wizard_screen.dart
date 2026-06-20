@@ -776,7 +776,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
             children: [
               _buildPriceRow("Service Fee", servicePrice),
               if (_parkingNeeded) _buildPriceRow("Valet Parking reservation", parkingPrice),
-              _buildPriceRow("BookWell Convenience Charge", convenienceFee),
+              _buildPriceRow("Zuruni Convenience Charge", convenienceFee),
               const Divider(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

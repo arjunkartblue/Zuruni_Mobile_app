@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../theme/theme.dart';
 import '../state/app_state.dart';
 import 'explore_screen.dart';
@@ -31,13 +32,9 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
     // Custom App Bar
     final AppBar customAppBar = AppBar(
-      title: Text(
-        'BookWell',
-        style: GoogleFonts.hankenGrotesk(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.primaryColor,
-        ),
+      title: SvgPicture.asset(
+        'assets/images/zuruni_logo.svg',
+        height: 24,
       ),
       elevation: 0.5,
       backgroundColor: AppTheme.surfaceColor,

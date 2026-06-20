@@ -9,11 +9,11 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider(
         create: (context) => AppState(),
-        child: const BookWellApp(),
+        child: const ZuruniApp(),
       ),
     );
 
-    // Verify that the title BookWell is shown.
-    expect(find.text('BookWell Mobile'), findsNothing); // Title is inside MaterialApp, not direct widget text
+    // Verify that the title Zuruni is shown.
+    expect(find.text('Zuruni Mobile'), findsNothing); // Title is inside MaterialApp, not direct widget text
   });
 }
