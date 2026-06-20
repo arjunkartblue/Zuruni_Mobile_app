@@ -140,6 +140,8 @@ class VisitorPassScreen extends StatelessWidget {
                 children: [
                   _buildDetailRow("Name", appState.userName.isNotEmpty ? appState.userName : "Alex Johnson"),
                   _buildDetailRow("Mobile", appState.userPhone.isNotEmpty ? appState.userPhone : "+1 555-0199"),
+                  if (appState.visitorNames.isNotEmpty && appState.visitorNames.any((n) => n.trim().isNotEmpty))
+                    _buildDetailRow("Companions", appState.visitorNames.where((n) => n.trim().isNotEmpty).join(", ")),
                   _buildDetailRow("Vehicle", appState.vehicleNumber.isNotEmpty ? appState.vehicleNumber : "ABC-1234"),
                 ],
               ),
