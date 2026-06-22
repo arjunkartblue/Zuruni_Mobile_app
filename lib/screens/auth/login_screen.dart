@@ -11,14 +11,14 @@ import 'otp_verification_screen.dart';
 enum _LoginMode { password, otp }
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -26,7 +26,13 @@ class _LoginScreenState extends State<LoginScreen>
   bool _rememberMe = false;
   _LoginMode _loginMode = _LoginMode.password;
 
+  // Mode switch animation (existing)
   late final AnimationController _animController;
+
+  // Entrance animation for content (fade + slide up)
+  late final AnimationController _contentController;
+  late final Animation<double> _contentOpacity;
+  late final Animation<Offset> _contentSlide;
 
   @override
   void initState() {
@@ -36,6 +42,23 @@ class _LoginScreenState extends State<LoginScreen>
       duration: const Duration(milliseconds: 250),
     );
     _animController.forward();
+
+    _contentController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _contentOpacity = CurvedAnimation(
+      parent: _contentController,
+      curve: Curves.easeInOutCubic,
+    );
+    _contentSlide = Tween<Offset>(
+      begin: const Offset(0, 0.05), // ~20px on a typical screen
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _contentController,
+      curve: Curves.easeInOutCubic,
+    ));
+    _contentController.forward();
   }
 
   @override
@@ -43,6 +66,7 @@ class _LoginScreenState extends State<LoginScreen>
     _emailController.dispose();
     _passwordController.dispose();
     _animController.dispose();
+    _contentController.dispose();
     super.dispose();
   }
 
@@ -154,21 +178,47 @@ class _LoginScreenState extends State<LoginScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Logo ──────────────────────────────────────────────────
+                // ── Logo (Hero destination from SplashScreen) ────────────
                 Padding(
                   padding: const EdgeInsets.only(bottom: 24.0),
                   child: SizedBox(
                     height: 48,
                     child: Center(
-                      child: SvgPicture.asset(
-                        'assets/images/zuruni_logo.svg',
-                        height: 28,
+                      child: Hero(
+                        tag: 'zuruni_brand',
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              SvgPicture.asset(
+                                'assets/images/app_logo.svg',
+                                height: 28,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 2.0),
+                                child: SvgPicture.asset(
+                                  'assets/images/app_text.svg',
+                                  height: 28,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
 
-                // ── Title + animated subtitle ─────────────────────────────
+                // ── Title + animated subtitle (with entrance animation) ───
+                SlideTransition(
+                  position: _contentSlide,
+                  child: FadeTransition(
+                    opacity: _contentOpacity,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                 Center(
                   child: Column(
                     children: [
@@ -527,6 +577,10 @@ class _LoginScreenState extends State<LoginScreen>
                     ],
                   ),
                 ),
+                    ],
+                  ),
+                ),
+              ),
               ],
             ),
           ),

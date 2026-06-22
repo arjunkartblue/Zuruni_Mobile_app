@@ -11,6 +11,7 @@ import 'package:zuruni_mobile_app/screens/auth/forgot_password_screen.dart';
 import 'package:zuruni_mobile_app/screens/auth/otp_verification_screen.dart';
 import 'package:zuruni_mobile_app/screens/auth/account_created_screen.dart';
 import 'package:zuruni_mobile_app/screens/auth/reset_password_screen.dart';
+import 'package:zuruni_mobile_app/screens/auth/login_screen.dart';
 
 void main() {
   setUpAll(() {
@@ -23,6 +24,21 @@ void main() {
       value: appState,
       child: const ZuruniApp(),
     );
+  }
+
+  /// Pumps through the splash animation phases and the Hero navigation
+  /// transition so that tests land on the LoginScreen.
+  Future<void> pumpThroughSplash(WidgetTester tester) async {
+    // Phase 1: logo animation (800ms)
+    await tester.pump(const Duration(milliseconds: 850));
+    // Phase 2: text reveal animation (700ms)
+    await tester.pump(const Duration(milliseconds: 750));
+    // Phase 3: brief pause (400ms) + pushReplacement triggers
+    await tester.pump(const Duration(milliseconds: 450));
+    // Hero page transition (700ms)
+    await tester.pumpAndSettle();
+    // Verify we are now on LoginScreen
+    expect(find.byType(LoginScreen), findsOneWidget);
   }
 
   testWidgets('Signup flow verification: signup -> OTP -> Account Verified', (WidgetTester tester) async {
@@ -38,7 +54,7 @@ void main() {
 
       final appState = AppState();
       await tester.pumpWidget(buildTestWidget(appState));
-      await tester.pumpAndSettle();
+      await pumpThroughSplash(tester);
 
       // 1. We start at LoginScreen. Click on "Sign Up" link to navigate to SignupScreen.
       final signUpLink = find.text('Sign Up');
@@ -150,7 +166,7 @@ void main() {
 
       final appState = AppState();
       await tester.pumpWidget(buildTestWidget(appState));
-      await tester.pumpAndSettle();
+      await pumpThroughSplash(tester);
 
       // 1. From LoginScreen, tap "Forgot Password?"
       final forgotPasswordLink = find.text('Forgot Password?');
