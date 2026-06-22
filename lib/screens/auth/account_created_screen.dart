@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -5,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../../theme/theme.dart';
 import '../../state/app_state.dart';
 
-class AccountCreatedScreen extends StatelessWidget {
+class AccountCreatedScreen extends StatefulWidget {
   final String name;
   final String email;
   final String phone;
@@ -20,7 +21,64 @@ class AccountCreatedScreen extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<AccountCreatedScreen> createState() => _AccountCreatedScreenState();
+}
+
+class _AccountCreatedScreenState extends State<AccountCreatedScreen> {
+  Timer? _timer;
+  double _progress = 0.0;
+  final int _totalDurationMs = 3000;
+  final int _tickMs = 50;
+  int _elapsedMs = 0;
+  bool _navigated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(Duration(milliseconds: _tickMs), (timer) {
+      if (!mounted) return;
+      setState(() {
+        _elapsedMs += _tickMs;
+        _progress = (_elapsedMs / _totalDurationMs).clamp(0.0, 1.0);
+        if (_elapsedMs >= _totalDurationMs) {
+          _timer?.cancel();
+          _goToDashboard();
+        }
+      });
+    });
+  }
+
+  void _goToDashboard() {
+    if (_navigated || !mounted) return;
+    _navigated = true;
+    _timer?.cancel();
+
+    final appState = Provider.of<AppState>(context, listen: false);
+    appState.signup(widget.name, widget.email, widget.phone, widget.password);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Welcome to Zuruni, ${appState.userName}!"),
+        backgroundColor: AppTheme.successColor,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    int secondsRemaining = ((_totalDurationMs - _elapsedMs) / 1000).ceil();
+    if (secondsRemaining < 0) secondsRemaining = 0;
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       body: SafeArea(
@@ -76,12 +134,36 @@ class AccountCreatedScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                "Your account has been created successfully. Let's get started!",
+                "Your account has been verified successfully. Let's get started!",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   color: AppTheme.onSurfaceVariant,
                   height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Smooth countdown indicator
+              Text(
+                "Redirecting to dashboard in $secondsRemaining seconds...",
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: 140,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(
+                    value: _progress,
+                    backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                    minHeight: 4,
+                  ),
                 ),
               ),
               const Spacer(),
@@ -91,18 +173,7 @@ class AccountCreatedScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Completed Signup, save to AppState which triggers home route transition
-                    final appState = Provider.of<AppState>(context, listen: false);
-                    appState.signup(name, email, phone, password);
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Welcome to Zuruni, ${appState.userName}!"),
-                        backgroundColor: AppTheme.successColor,
-                      ),
-                    );
-                  },
+                  onPressed: _goToDashboard,
                   child: const Text("Go to Dashboard"),
                 ),
               ),

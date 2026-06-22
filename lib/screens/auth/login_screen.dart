@@ -6,6 +6,9 @@ import '../../theme/theme.dart';
 import '../../state/app_state.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
+import 'otp_verification_screen.dart';
+
+enum _LoginMode { password, otp }
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -14,17 +17,32 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  _LoginMode _loginMode = _LoginMode.password;
+
+  late final AnimationController _animController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    );
+    _animController.forward();
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _animController.dispose();
     super.dispose();
   }
 
@@ -43,11 +61,10 @@ class _LoginScreenState extends State<LoginScreen> {
 </svg>
 ''';
 
-  void _submit() {
+  void _submitPassword() {
     if (_formKey.currentState!.validate()) {
       final appState = Provider.of<AppState>(context, listen: false);
       appState.login(_emailController.text, _passwordController.text);
-      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Welcome back, ${appState.userName}!"),
@@ -57,19 +74,64 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _submitOtp() {
+    if (_formKey.currentState!.validate()) {
+      final identifier = _emailController.text.trim();
+      final isPhone =
+          RegExp(r'^\+?[0-9]{7,15}$').hasMatch(identifier.replaceAll(RegExp(r'[\s\-()]+'), ''));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("OTP sent to $identifier"),
+          backgroundColor: AppTheme.successColor,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OtpVerificationScreen(
+              email: isPhone ? null : identifier,
+              phone: isPhone ? identifier : null,
+              isPasswordReset: false,
+            ),
+          ),
+        );
+      });
+    }
+  }
+
   void _mockSocialLogin(String provider) {
     final appState = Provider.of<AppState>(context, listen: false);
     appState.login("$provider.user@example.com", "password123");
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("Signed in via $provider! Welcome back, ${appState.userName}!"),
+        content:
+            Text("Signed in via $provider! Welcome back, ${appState.userName}!"),
         backgroundColor: AppTheme.successColor,
       ),
     );
   }
 
+  void _switchMode(_LoginMode mode) {
+    if (_loginMode == mode) return;
+    _animController.reverse().then((_) {
+      setState(() {
+        _loginMode = mode;
+        _formKey.currentState?.reset();
+        _passwordController.clear();
+      });
+      _animController.forward();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isOtpMode = _loginMode == _LoginMode.otp;
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: Navigator.canPop(context)
@@ -77,20 +139,22 @@ class _LoginScreenState extends State<LoginScreen> {
               backgroundColor: Colors.transparent,
               elevation: 0,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: AppTheme.onSurfaceColor),
+                icon: const Icon(Icons.arrow_back,
+                    color: AppTheme.onSurfaceColor),
                 onPressed: () => Navigator.pop(context),
               ),
             )
           : null,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Zuruni Logo in Top Center
+                // ── Logo ──────────────────────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.only(bottom: 24.0),
                   child: SizedBox(
@@ -103,7 +167,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                // Centered Header & Subheader
+
+                // ── Title + animated subtitle ─────────────────────────────
                 Center(
                   child: Column(
                     children: [
@@ -118,20 +183,34 @@ class _LoginScreenState extends State<LoginScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        "Log in to manage your appointments and professional network.",
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          color: AppTheme.onSurfaceVariant,
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 250),
+                        child: Text(
+                          isOtpMode
+                              ? "We'll send a one-time code to your email or phone."
+                              : "Log in to manage your appointments and professional network.",
+                          key: ValueKey(isOtpMode),
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            color: AppTheme.onSurfaceVariant,
+                            height: 1.4,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 40),
-                
-                // Email or Phone Field
+                const SizedBox(height: 28),
+
+                // ── Pill toggle ───────────────────────────────────────────
+                _LoginModePill(
+                  selected: _loginMode,
+                  onChanged: _switchMode,
+                ),
+                const SizedBox(height: 28),
+
+                // ── Email / Phone field (shared) ───────────────────────────
                 Text(
                   "Email or Phone",
                   style: GoogleFonts.inter(
@@ -146,14 +225,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     hintText: "Enter your email or phone number",
-                    prefixIcon: Icon(Icons.person_outline, color: AppTheme.outlineColor),
+                    prefixIcon: Icon(Icons.person_outline,
+                        color: AppTheme.outlineColor),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email or phone';
                     }
-                    final isEmail = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value);
-                    final isPhone = RegExp(r'^\+?[0-9]{7,15}$').hasMatch(value.replaceAll(RegExp(r'[\s-()]+'), ''));
+                    final isEmail =
+                        RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                            .hasMatch(value);
+                    final isPhone =
+                        RegExp(r'^\+?[0-9]{7,15}$').hasMatch(
+                            value.replaceAll(RegExp(r'[\s\-()]+'), ''));
                     if (!isEmail && !isPhone) {
                       return 'Please enter a valid email or phone number';
                     }
@@ -161,122 +245,167 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
-                
-                // Password Field
-                Text(
-                  "Password",
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.onSurfaceColor,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    hintText: "Enter your password",
-                    prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.outlineColor),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        color: AppTheme.outlineColor,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
+
+                // ── Animated: Password fields ─────────────────────────────
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 280),
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: SizeTransition(
+                      sizeFactor: animation,
+                      axisAlignment: -1,
+                      child: child,
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                
-                // Remember Me & Forgot Password
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: Checkbox(
-                              value: _rememberMe,
-                              activeColor: AppTheme.primaryColor,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              onChanged: (value) {
-                                setState(() {
-                                  _rememberMe = value ?? false;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              "Remember me",
+                  child: isOtpMode
+                      ? const SizedBox.shrink(key: ValueKey('otp_empty'))
+                      : Column(
+                          key: const ValueKey('password_fields'),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Password",
                               style: GoogleFonts.inter(
                                 fontSize: 14,
-                                color: AppTheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.onSurfaceColor,
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
-                        );
-                      },
-                      child: const Text(
-                        "Forgot Password?",
-                        style: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
+                            const SizedBox(height: 8),
+                            TextFormField(
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              decoration: InputDecoration(
+                                hintText: "Enter your password",
+                                prefixIcon: const Icon(Icons.lock_outline,
+                                    color: AppTheme.outlineColor),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    color: AppTheme.outlineColor,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                ),
+                              ),
+                              validator: isOtpMode
+                                  ? null
+                                  : (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please enter your password';
+                                      }
+                                      if (value.length < 6) {
+                                        return 'Password must be at least 6 characters';
+                                      }
+                                      return null;
+                                    },
+                            ),
+                            const SizedBox(height: 12),
+                            // Remember Me & Forgot Password
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              children: [
+                                Flexible(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: Checkbox(
+                                          value: _rememberMe,
+                                          activeColor:
+                                              AppTheme.primaryColor,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                          onChanged: (value) {
+                                            setState(() {
+                                              _rememberMe = value ?? false;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Flexible(
+                                        child: Text(
+                                          "Remember me",
+                                          style: GoogleFonts.inter(
+                                            fontSize: 14,
+                                            color:
+                                                AppTheme.onSurfaceVariant,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const ForgotPasswordScreen()),
+                                    );
+                                  },
+                                  child: const Text(
+                                    "Forgot Password?",
+                                    style: TextStyle(
+                                      color: AppTheme.primaryColor,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                          ],
                         ),
-                      ),
-                    ),
-                  ],
                 ),
-                const SizedBox(height: 32),
-                
-                // Login Button
+
+                // ── Primary action button ─────────────────────────────────
                 SizedBox(
                   width: double.infinity,
                   height: 52,
-                  child: ElevatedButton(
-                    onPressed: _submit,
-                    child: const Text("LOG IN"),
+                  child: ElevatedButton.icon(
+                    onPressed:
+                        isOtpMode ? _submitOtp : _submitPassword,
+                    icon: Icon(
+                      isOtpMode
+                          ? Icons.send_rounded
+                          : Icons.login_rounded,
+                      size: 18,
+                    ),
+                    label: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: Text(
+                        isOtpMode ? "SEND OTP CODE" : "LOG IN",
+                        key: ValueKey(isOtpMode),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                // Divider
+                // ── Divider ───────────────────────────────────────────────
                 Row(
                   children: [
-                    const Expanded(child: Divider(color: AppTheme.outlineVariantColor)),
+                    const Expanded(
+                        child:
+                            Divider(color: AppTheme.outlineVariantColor)),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Text(
                         "OR CONTINUE WITH",
                         style: GoogleFonts.jetBrainsMono(
@@ -287,28 +416,28 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    const Expanded(child: Divider(color: AppTheme.outlineVariantColor)),
+                    const Expanded(
+                        child:
+                            Divider(color: AppTheme.outlineVariantColor)),
                   ],
                 ),
                 const SizedBox(height: 20),
 
-                // Social Buttons
+                // ── Social Buttons ────────────────────────────────────────
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     backgroundColor: AppTheme.surfaceContainerLowest,
-                    side: const BorderSide(color: AppTheme.outlineVariantColor),
+                    side: const BorderSide(
+                        color: AppTheme.outlineVariantColor),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.radiusLg),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     minimumSize: const Size(double.infinity, 50),
                   ),
                   onPressed: () => _mockSocialLogin("Google"),
-                  icon: SvgPicture.string(
-                    _googleSvg,
-                    width: 20,
-                    height: 20,
-                  ),
+                  icon: SvgPicture.string(_googleSvg, width: 20, height: 20),
                   label: Text(
                     "Continue with Google",
                     style: GoogleFonts.inter(
@@ -322,19 +451,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     backgroundColor: AppTheme.surfaceContainerLowest,
-                    side: const BorderSide(color: AppTheme.outlineVariantColor),
+                    side: const BorderSide(
+                        color: AppTheme.outlineVariantColor),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.radiusLg),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     minimumSize: const Size(double.infinity, 50),
                   ),
                   onPressed: () => _mockSocialLogin("Apple"),
-                  icon: SvgPicture.string(
-                    _appleSvg,
-                    width: 20,
-                    height: 20,
-                  ),
+                  icon: SvgPicture.string(_appleSvg, width: 20, height: 20),
                   label: Text(
                     "Continue with Apple",
                     style: GoogleFonts.inter(
@@ -346,11 +473,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 28),
 
-                // Continue as Guest
+                // ── Continue as Guest ─────────────────────────────────────
                 Center(
                   child: GestureDetector(
                     onTap: () {
-                      final appState = Provider.of<AppState>(context, listen: false);
+                      final appState =
+                          Provider.of<AppState>(context, listen: false);
                       appState.continueAsGuest();
                     },
                     child: Text(
@@ -368,34 +496,144 @@ class _LoginScreenState extends State<LoginScreen> {
                 const Divider(color: AppTheme.outlineVariantColor),
                 const SizedBox(height: 24),
 
-                // Signup Link
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    const Text(
-                      "Don't have an account? ",
-                      style: TextStyle(color: AppTheme.onSurfaceVariant),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const SignupScreen()),
-                        );
-                      },
-                      child: const Text(
-                        "Sign Up",
-                        style: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.bold,
+                // ── Sign Up link ──────────────────────────────────────────
+                Center(
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      const Text(
+                        "Don't have an account? ",
+                        style:
+                            TextStyle(color: AppTheme.onSurfaceVariant),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const SignupScreen()),
+                          );
+                        },
+                        child: const Text(
+                          "Sign Up",
+                          style: TextStyle(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Pill Toggle Widget ──────────────────────────────────────────────────────
+
+class _LoginModePill extends StatelessWidget {
+  final _LoginMode selected;
+  final ValueChanged<_LoginMode> onChanged;
+
+  const _LoginModePill({
+    required this.selected,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceContainerColor,
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: [
+          _PillTab(
+            icon: Icons.lock_outline_rounded,
+            label: "Password",
+            isSelected: selected == _LoginMode.password,
+            onTap: () => onChanged(_LoginMode.password),
+          ),
+          _PillTab(
+            icon: Icons.smartphone_rounded,
+            label: "OTP",
+            isSelected: selected == _LoginMode.otp,
+            onTap: () => onChanged(_LoginMode.otp),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PillTab extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _PillTab({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeInOut,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            color:
+                isSelected ? AppTheme.primaryColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withOpacity(0.25),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    )
+                  ]
+                : [],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: isSelected
+                    ? Colors.white
+                    : AppTheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected
+                      ? Colors.white
+                      : AppTheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
         ),
       ),
