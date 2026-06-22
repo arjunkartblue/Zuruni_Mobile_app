@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/theme.dart';
 import '../state/app_state.dart';
 import 'explore/org_profile_screen.dart';
-import 'visitor_access/operational_dashboard_screen.dart';
+import 'visitor_access/appointment_overview_screen.dart';
 import 'auth/login_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -286,7 +286,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => OperationalDashboardScreen(appointment: appointment),
+                                builder: (context) => AppointmentOverviewScreen(appointment: appointment),
                               ),
                             );
                           } else {

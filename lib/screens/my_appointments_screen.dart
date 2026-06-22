@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/theme.dart';
 import '../state/app_state.dart';
-import 'visitor_access/visitor_pass_screen.dart';
+import 'visitor_access/appointment_overview_screen.dart';
 
 class MyAppointmentsScreen extends StatefulWidget {
   const MyAppointmentsScreen({super.key});
@@ -76,7 +76,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => VisitorPassScreen(appointment: appointment),
+                              builder: (context) => AppointmentOverviewScreen(appointment: appointment),
                             ),
                           );
                         }

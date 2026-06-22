@@ -731,8 +731,8 @@ class _AppointmentConfirmedScreenState extends State<AppointmentConfirmedScreen>
   Widget _buildTimeline(String timeSlot, bool parkingNeeded) {
     final times = _computeTimelineTimes(timeSlot);
     final List<Map<String, dynamic>> items = [
-      {"time": times["Entry"], "title": "Entry", "active": true},
-      {"time": times["Meeting Starts"], "title": "Meeting Starts", "active": true},
+      {"time": times["Entry"], "title": "Entry", "active": false},
+      {"time": times["Meeting Starts"], "title": "Meeting Starts", "active": false},
       {"time": times["Exit"], "title": "Exit", "active": false},
     ];
     if (parkingNeeded) {
