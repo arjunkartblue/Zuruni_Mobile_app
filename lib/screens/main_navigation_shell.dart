@@ -123,7 +123,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           color: AppTheme.surfaceColor,
           border: Border(
             top: BorderSide(
-              color: theme.colorScheme.surfaceVariant,
+              color: theme.colorScheme.outlineVariant,
               width: 1,
             ),
           ),

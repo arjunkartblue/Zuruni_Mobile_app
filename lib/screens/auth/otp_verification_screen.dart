@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../theme/theme.dart';
-import '../../state/app_state.dart';
 import 'reset_password_screen.dart';
 import 'account_created_screen.dart';
 

@@ -66,17 +66,15 @@ class AppTheme {
       colorScheme: ColorScheme.light(
         primary: primaryColor,
         secondary: secondaryColor,
-        background: backgroundColor,
         surface: surfaceColor,
         error: errorColor,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
-        onBackground: onSurfaceColor,
         onSurface: onSurfaceColor,
-        surfaceVariant: surfaceContainerColor,
         onSurfaceVariant: onSurfaceVariant,
         outline: outlineColor,
         outlineVariant: outlineVariantColor,
+        surfaceContainerHighest: surfaceContainerColor,
       ),
       textTheme: GoogleFonts.interTextTheme().copyWith(
         displayLarge: GoogleFonts.hankenGrotesk(
