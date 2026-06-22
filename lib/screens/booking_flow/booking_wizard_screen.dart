@@ -3,17 +3,30 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/theme.dart';
 import '../../state/app_state.dart';
-import 'payment_success_screen.dart';
+import 'appointment_confirmed_screen.dart';
 
 class BookingWizardScreen extends StatefulWidget {
-  const BookingWizardScreen({Key? key}) : super(key: key);
+  final int initialStep;
+  const BookingWizardScreen({Key? key, this.initialStep = 0}) : super(key: key);
 
   @override
   State<BookingWizardScreen> createState() => _BookingWizardScreenState();
 }
 
 class _BookingWizardScreenState extends State<BookingWizardScreen> {
-  int _currentStep = 0; // 0: Schedule, 1: Visitor Registration, 2: Checkout/Summary
+  late int _currentStep; // 0: Service, 1: Schedule, 2: Visitor Registration, 3: Checkout/Summary
+  
+  // Step 3: Review and Pay states
+  String _selectedPaymentMethod = "card";
+  final _cardNumberController = TextEditingController(text: "4000 1234 5678 9010");
+  final _expiryController = TextEditingController(text: "12/28");
+  final _cvcController = TextEditingController(text: "123");
+  
+  @override
+  void initState() {
+    super.initState();
+    _currentStep = widget.initialStep;
+  }
   
   // Step 1: Schedule states
   Map<String, dynamic>? _selectedProfessional;
@@ -47,6 +60,54 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
   ];
 
   // Helper methods for scheduling and calendar mapping
+  String _getServiceDescription(String serviceName) {
+    final name = serviceName.toLowerCase();
+    if (name.contains("consultation")) {
+      return "Initial health assessment and diagnostic overview.";
+    } else if (name.contains("follow-up")) {
+      return "Review of treatment progress and test results.";
+    } else if (name.contains("diagnostic") || name.contains("lab") || name.contains("search")) {
+      return "Advanced screening, imaging, and full laboratory panel.";
+    } else if (name.contains("teeth") || name.contains("cleaning")) {
+      return "Professional oral hygiene checkup and whitening treatment.";
+    } else if (name.contains("root canal") || name.contains("treatment")) {
+      return "Advanced dental surgery and pain relief treatment.";
+    } else if (name.contains("business") || name.contains("tax")) {
+      return "Corporate strategy audit and compliance consultation.";
+    } else if (name.contains("estate") || name.contains("wealth")) {
+      return "Estate planning review and wealth advisory.";
+    } else if (name.contains("facial") || name.contains("laser")) {
+      return "Premium aesthetic treatment and skin restoration session.";
+    }
+    return "Specialist advisory consultation and detailed action plan.";
+  }
+
+  IconData _getServiceIcon(String serviceName, String category) {
+    final name = serviceName.toLowerCase();
+    final cat = category.toLowerCase();
+    if (cat.contains("health") || cat.contains("medical") || cat.contains("dental") || cat.contains("hospital")) {
+      if (name.contains("consultation")) {
+        return Icons.local_hospital_outlined;
+      } else if (name.contains("follow-up") || name.contains("follow up")) {
+        return Icons.sync_outlined;
+      } else if (name.contains("diagnostic") || name.contains("lab") || name.contains("screening")) {
+        return Icons.analytics_outlined;
+      }
+      return Icons.medical_services_outlined;
+    } else if (cat.contains("legal") || cat.contains("law")) {
+      if (name.contains("advice") || name.contains("consultation")) {
+        return Icons.gavel_outlined;
+      }
+      return Icons.description_outlined;
+    } else if (cat.contains("beauty") || cat.contains("spa") || cat.contains("aesthetic")) {
+      if (name.contains("facial") || name.contains("skincare")) {
+        return Icons.face_outlined;
+      }
+      return Icons.spa_outlined;
+    }
+    return Icons.business_center_outlined;
+  }
+
   String _getProfessionalAvatar(String name) {
     final lower = name.toLowerCase();
     if (lower.contains("thorne")) {
@@ -110,74 +171,83 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     final slots = _getSlotsForPeriod(period);
     if (slots.isEmpty) return const SizedBox.shrink();
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 16, color: AppTheme.onSurfaceVariant.withOpacity(0.8)),
-            const SizedBox(width: 6),
-            Text(
-              period,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.onSurfaceColor,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        border: Border.all(color: AppTheme.outlineVariantColor),
+        boxShadow: AppTheme.ambientShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: AppTheme.primaryColor),
+              const SizedBox(width: 8),
+              Text(
+                period,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.onSurfaceColor,
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 3.2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
+            ],
           ),
-          itemCount: slots.length,
-          itemBuilder: (context, index) {
-            final slot = slots[index];
-            final isSelected = _selectedTimeSlot == slot;
-            final isDisabled = slot == "03:00 PM";
-            
-            return GestureDetector(
-              onTap: isDisabled ? null : () {
-                setState(() {
-                  _selectedTimeSlot = slot;
-                });
-              },
-              child: Container(
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: isSelected 
-                      ? AppTheme.primaryColor 
-                      : (isDisabled ? const Color(0xFFF1F5F9) : Colors.white),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                  border: Border.all(
+          const SizedBox(height: 12),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 3.2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+            ),
+            itemCount: slots.length,
+            itemBuilder: (context, index) {
+              final slot = slots[index];
+              final isSelected = _selectedTimeSlot == slot;
+              final isDisabled = slot == "03:00 PM";
+              
+              return GestureDetector(
+                onTap: isDisabled ? null : () {
+                  setState(() {
+                    _selectedTimeSlot = slot;
+                  });
+                },
+                child: Container(
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
                     color: isSelected 
                         ? AppTheme.primaryColor 
-                        : (isDisabled ? const Color(0xFFE2E8F0) : const Color(0xFFF1EBF1)),
+                        : (isDisabled ? const Color(0xFFF1F5F9) : Colors.white),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                    border: Border.all(
+                      color: isSelected 
+                          ? AppTheme.primaryColor 
+                          : (isDisabled ? const Color(0xFFE2E8F0) : const Color(0xFFF1EBF1)),
+                    ),
+                  ),
+                  child: Text(
+                    slot,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: isSelected 
+                          ? Colors.white 
+                          : (isDisabled ? AppTheme.outlineColor.withOpacity(0.5) : AppTheme.onSurfaceColor),
+                    ),
                   ),
                 ),
-                child: Text(
-                  slot,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected 
-                        ? Colors.white 
-                        : (isDisabled ? AppTheme.outlineColor.withOpacity(0.5) : AppTheme.onSurfaceColor),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 18),
-      ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -187,6 +257,9 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _cardNumberController.dispose();
+    _expiryController.dispose();
+    _cvcController.dispose();
     for (var controller in _visitorNameControllers) {
       controller.dispose();
     }
@@ -195,6 +268,15 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
 
   void _nextStep() {
     if (_currentStep == 0) {
+      final appState = Provider.of<AppState>(context, listen: false);
+      if (appState.selectedService == null) {
+        _showError("Please select a service");
+        return;
+      }
+      setState(() {
+        _currentStep = 1;
+      });
+    } else if (_currentStep == 1) {
       if (_selectedProfessional == null) {
         _showError("Please select a professional");
         return;
@@ -204,12 +286,12 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
         return;
       }
       setState(() {
-        _currentStep = 1;
+        _currentStep = 2;
       });
-    } else if (_currentStep == 1) {
+    } else if (_currentStep == 2) {
       if (_visitorFormKey.currentState!.validate()) {
         setState(() {
-          _currentStep = 2;
+          _currentStep = 3;
         });
       }
     }
@@ -287,7 +369,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => PaymentSuccessScreen(appointment: newApt),
+        builder: (context) => AppointmentConfirmedScreen(appointment: newApt),
       ),
     );
   }
@@ -356,14 +438,16 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
   Widget _buildStepper() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
-      color: Colors.white,
+      color: AppTheme.backgroundColor,
       child: Row(
         children: [
-          _buildStepNode(0, "Schedule"),
+          _buildStepNode(0, "Service"),
           _buildStepLine(0),
-          _buildStepNode(1, "Visitors"),
+          _buildStepNode(1, "Schedule"),
           _buildStepLine(1),
-          _buildStepNode(2, "Checkout"),
+          _buildStepNode(2, "Visitors"),
+          _buildStepLine(2),
+          _buildStepNode(3, "Review & Pay"),
         ],
       ),
     );
@@ -428,14 +512,139 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
   Widget _buildStepContent(AppState appState) {
     switch (_currentStep) {
       case 0:
-        return _buildScheduleStep(appState);
+        return _buildServiceStep(appState);
       case 1:
-        return _buildVisitorStep();
+        return _buildScheduleStep(appState);
       case 2:
+        return _buildVisitorStep();
+      case 3:
         return _buildCheckoutStep(appState);
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _buildServiceStep(AppState appState) {
+    if (appState.selectedOrg == null) {
+      return const Center(child: Text("No organization selected"));
+    }
+    
+    final services = appState.selectedOrg!["services"] as List;
+    final category = appState.selectedOrg!["category"] as String;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Select Service",
+          style: GoogleFonts.hankenGrotesk(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.onSurfaceColor,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Column(
+          children: List.generate(services.length, (index) {
+            final service = services[index];
+            final isSelected = appState.selectedService == service["name"];
+            final servIcon = _getServiceIcon(service["name"], category);
+            const servBg = Color(0xFFFAF5FF);
+            const servColor = AppTheme.primaryColor;
+            
+            String durationText = service["duration"].toString().toUpperCase();
+            if (durationText.contains("MIN") && !durationText.contains("MINS")) {
+              durationText = durationText.replaceAll("MIN", "MINS");
+            }
+            
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  appState.selectedService = service["name"];
+                  appState.selectedServicePrice = service["price"];
+                });
+              },
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12.0),
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFFFAF5FF) : Colors.white,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                  border: Border.all(
+                    color: isSelected ? AppTheme.primaryColor : const Color(0xFFF1EBF1),
+                    width: isSelected ? 2.0 : 1.0,
+                  ),
+                  boxShadow: AppTheme.ambientShadow,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: servBg,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFF3E8FF)),
+                      ),
+                      child: Icon(servIcon, color: servColor, size: 20),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            service["name"],
+                            style: GoogleFonts.hankenGrotesk(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.onSurfaceColor,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _getServiceDescription(service["name"]),
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              color: AppTheme.onSurfaceVariant.withOpacity(0.7),
+                              height: 1.3,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.access_time, size: 12, color: AppTheme.outlineColor),
+                              const SizedBox(width: 4),
+                              Text(
+                                durationText,
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.outlineColor),
+                              ),
+                              const SizedBox(width: 16),
+                              const Icon(Icons.payments_outlined, size: 12, color: AppTheme.outlineColor),
+                              const SizedBox(width: 4),
+                              Text(
+                                "\$${service["price"].toStringAsFixed(2)}",
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.outlineColor),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (isSelected)
+                      const Icon(
+                        Icons.check_circle,
+                        color: AppTheme.primaryColor,
+                        size: 22,
+                      ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
   }
 
   Widget _buildScheduleStep(AppState appState) {
@@ -530,133 +739,153 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
         ),
         const SizedBox(height: 24),
 
-        // Select Date (Calendar Header with month navigation)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "Select Date",
-              style: GoogleFonts.hankenGrotesk(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.onSurfaceColor,
-              ),
-            ),
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chevron_left, size: 20),
-                  onPressed: () {
-                    setState(() {
-                      _currentCalendarMonth = DateTime(
-                        _currentCalendarMonth.year,
-                        _currentCalendarMonth.month - 1,
-                        1,
-                      );
-                    });
-                  },
-                ),
-                Text(
-                  _getMonthYearString(_currentCalendarMonth),
-                  style: GoogleFonts.hankenGrotesk(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.onSurfaceColor,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right, size: 20),
-                  onPressed: () {
-                    setState(() {
-                      _currentCalendarMonth = DateTime(
-                        _currentCalendarMonth.year,
-                        _currentCalendarMonth.month + 1,
-                        1,
-                      );
-                    });
-                  },
-                ),
-              ],
-            ),
-          ],
+        // Select Date
+        Text(
+          "Select Date",
+          style: GoogleFonts.hankenGrotesk(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.onSurfaceColor,
+          ),
         ),
         const SizedBox(height: 12),
-
-        // Days of week Mo Tu We Th Fr Sa Su
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) {
-              return Expanded(
-                child: Center(
-                  child: Text(
-                    day,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
+        Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+            border: Border.all(color: AppTheme.outlineVariantColor),
+            boxShadow: AppTheme.ambientShadow,
+          ),
+          child: Column(
+            children: [
+              // Calendar Header with month navigation
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _getMonthYearString(_currentCalendarMonth),
+                    style: GoogleFonts.hankenGrotesk(
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.onSurfaceVariant.withOpacity(0.6),
+                      color: AppTheme.onSurfaceColor,
                     ),
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.chevron_left, size: 20),
+                        onPressed: () {
+                          setState(() {
+                            _currentCalendarMonth = DateTime(
+                              _currentCalendarMonth.year,
+                              _currentCalendarMonth.month - 1,
+                              1,
+                            );
+                          });
+                        },
+                        constraints: const BoxConstraints(),
+                        padding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.chevron_right, size: 20),
+                        onPressed: () {
+                          setState(() {
+                            _currentCalendarMonth = DateTime(
+                              _currentCalendarMonth.year,
+                              _currentCalendarMonth.month + 1,
+                              1,
+                            );
+                          });
+                        },
+                        constraints: const BoxConstraints(),
+                        padding: EdgeInsets.zero,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
 
-        // Calendar Grid
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
-            childAspectRatio: 1.1,
-            crossAxisSpacing: 4,
-            mainAxisSpacing: 4,
-          ),
-          itemCount: calendarDays.length,
-          itemBuilder: (context, index) {
-            final day = calendarDays[index];
-            final isSelected = day.day == _selectedDate.day &&
-                day.month == _selectedDate.month &&
-                day.year == _selectedDate.year;
-            final isCurrentMonth = day.month == _currentCalendarMonth.month;
-            final isWeekend = day.weekday == DateTime.saturday || day.weekday == DateTime.sunday;
-            final isPast = day.isBefore(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
-            
-            final isEnabled = isCurrentMonth && !isPast;
-            
-            return GestureDetector(
-              onTap: !isEnabled ? null : () {
-                setState(() {
-                  _selectedDate = day;
-                });
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: isSelected ? AppTheme.primaryColor : Colors.transparent,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    "${day.day}",
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isSelected
-                          ? Colors.white
-                          : (isCurrentMonth
-                              ? (isWeekend || isPast
-                                  ? AppTheme.outlineColor.withOpacity(0.4)
-                                  : AppTheme.onSurfaceColor)
-                              : AppTheme.outlineColor.withOpacity(0.25)),
-                    ),
-                  ),
+              // Days of week Mo Tu We Th Fr Sa Su
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) {
+                    return Expanded(
+                      child: Center(
+                        child: Text(
+                          day,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.onSurfaceVariant.withOpacity(0.6),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
-            );
-          },
+              const SizedBox(height: 10),
+
+              // Calendar Grid
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 7,
+                  childAspectRatio: 1.1,
+                  crossAxisSpacing: 4,
+                  mainAxisSpacing: 4,
+                ),
+                itemCount: calendarDays.length,
+                itemBuilder: (context, index) {
+                  final day = calendarDays[index];
+                  final isSelected = day.day == _selectedDate.day &&
+                      day.month == _selectedDate.month &&
+                      day.year == _selectedDate.year;
+                  final isCurrentMonth = day.month == _currentCalendarMonth.month;
+                  final isWeekend = day.weekday == DateTime.saturday || day.weekday == DateTime.sunday;
+                  final isPast = day.isBefore(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
+                  
+                  final isEnabled = isCurrentMonth && !isPast;
+                  
+                  return GestureDetector(
+                    onTap: !isEnabled ? null : () {
+                      setState(() {
+                        _selectedDate = day;
+                      });
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          "${day.day}",
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            color: isSelected
+                                ? Colors.white
+                                : (isCurrentMonth
+                                    ? (isWeekend || isPast
+                                        ? AppTheme.outlineColor.withOpacity(0.4)
+                                        : AppTheme.onSurfaceColor)
+                                    : AppTheme.outlineColor.withOpacity(0.25)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 24),
 
@@ -684,197 +913,41 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     
     return Form(
       key: _visitorFormKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Centered Header matching screenshot
-          Center(
-            child: Column(
-              children: [
-                Text(
-                  "Visitor Registration",
-                  style: GoogleFonts.hankenGrotesk(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.onSurfaceColor,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Centered Header matching screenshot
+            Center(
+              child: Column(
+                children: [
+                  Text(
+                    "Visitor Registration",
+                    style: GoogleFonts.hankenGrotesk(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.onSurfaceColor,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  orgName,
-                  style: GoogleFonts.hankenGrotesk(
-                    fontSize: 14,
-                    color: AppTheme.onSurfaceVariant.withOpacity(0.7),
-                    fontWeight: FontWeight.w500,
+                  const SizedBox(height: 4),
+                  Text(
+                    orgName,
+                    style: GoogleFonts.hankenGrotesk(
+                      fontSize: 14,
+                      color: AppTheme.onSurfaceVariant.withOpacity(0.7),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 28),
-
-          // Full Name field
-          Text(
-            "Full Name",
-            style: GoogleFonts.hankenGrotesk(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.onSurfaceColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _nameController,
-            decoration: const InputDecoration(
-              hintText: "Jane Doe",
-              prefixIcon: null, // Clean, no prefix icon
-            ),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Please enter full name';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20),
-
-          // Email Address field
-          Text(
-            "Email Address",
-            style: GoogleFonts.hankenGrotesk(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.onSurfaceColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(
-              hintText: "jane@example.com",
-              prefixIcon: null,
-            ),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Please enter email address';
-              }
-              if (!value.contains("@")) {
-                return 'Please enter a valid email address';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20),
-
-          // Mobile Number field
-          Text(
-            "Mobile Number",
-            style: GoogleFonts.hankenGrotesk(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.onSurfaceColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _phoneController,
-            keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(
-              hintText: "+1 (555) 000-0000",
-              prefixIcon: null,
-            ),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Please enter mobile number';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20),
-
-          // Purpose of Visit field
-          Text(
-            "Purpose of Visit",
-            style: GoogleFonts.hankenGrotesk(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.onSurfaceColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            value: _visitorPurpose,
-            hint: Text(
-              "Select purpose...",
-              style: GoogleFonts.inter(
-                color: AppTheme.outlineColor.withOpacity(0.8),
-                fontSize: 14,
+                ],
               ),
             ),
-            icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.outlineColor),
-            items: _purposes.map((p) {
-              return DropdownMenuItem(
-                value: p,
-                child: Text(
-                  p,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: AppTheme.onSurfaceColor,
-                  ),
-                ),
-              );
-            }).toList(),
-            onChanged: (val) {
-              setState(() {
-                _visitorPurpose = val;
-              });
-            },
-            decoration: const InputDecoration(
-              prefixIcon: null, // Clean, no prefix icon
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select a purpose';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 28),
 
-          // Need Parking SWITCH row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Need Parking?",
-                style: GoogleFonts.hankenGrotesk(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.onSurfaceColor,
-                ),
-              ),
-              Switch(
-                value: _parkingNeeded,
-                activeColor: AppTheme.primaryColor,
-                activeTrackColor: AppTheme.primaryColor.withOpacity(0.3),
-                inactiveThumbColor: Colors.white,
-                inactiveTrackColor: const Color(0xFFE8E1EB),
-                onChanged: (val) {
-                  setState(() {
-                    _parkingNeeded = val;
-                  });
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Vehicle Number (if parking needed)
-          if (_parkingNeeded) ...[
+            // Full Name field
             Text(
-              "Vehicle Registration Number",
+              "Full Name",
               style: GoogleFonts.hankenGrotesk(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
@@ -883,182 +956,355 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
             ),
             const SizedBox(height: 8),
             TextFormField(
-              controller: _vehicleController,
+              controller: _nameController,
               decoration: const InputDecoration(
-                hintText: "e.g., KA-03-HA-1988",
-                prefixIcon: null,
+                hintText: "Enter your full name",
+                prefixIcon: null, // Clean, no prefix icon
               ),
               validator: (value) {
-                if (_parkingNeeded && (value == null || value.trim().isEmpty)) {
-                  return 'Please enter vehicle registration number';
+                if (value == null || value.trim().isEmpty) {
+                  return 'Please enter full name';
                 }
                 return null;
               },
             ),
             const SizedBox(height: 20),
-          ],
 
-          // Companion Visitor Section
-          const Divider(color: Color(0xFFF4EBF4), height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            // Email Address field
+            Text(
+              "Email Address",
+              style: GoogleFonts.hankenGrotesk(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.onSurfaceColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                hintText: "Enter your email address",
+                prefixIcon: null,
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Please enter email address';
+                }
+                if (!value.contains("@")) {
+                  return 'Please enter a valid email address';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+
+            // Mobile Number field
+            Text(
+              "Mobile Number",
+              style: GoogleFonts.hankenGrotesk(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.onSurfaceColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                hintText: "Enter your mobile number",
+                prefixIcon: null,
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Please enter mobile number';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+
+            // Purpose of Visit field
+            Text(
+              "Purpose of Visit",
+              style: GoogleFonts.hankenGrotesk(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.onSurfaceColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: _visitorPurpose,
+              hint: Text(
+                "Select purpose...",
+                style: GoogleFonts.inter(
+                  color: AppTheme.outlineColor.withOpacity(0.8),
+                  fontSize: 14,
+                ),
+              ),
+              icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.outlineColor),
+              items: _purposes.map((p) {
+                return DropdownMenuItem(
+                  value: p,
+                  child: Text(
+                    p,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: AppTheme.onSurfaceColor,
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (val) {
+                setState(() {
+                  _visitorPurpose = val;
+                });
+              },
+              decoration: const InputDecoration(
+                prefixIcon: null, // Clean, no prefix icon
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a purpose';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+
+            // Need Parking SWITCH row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Need Parking?",
+                  style: GoogleFonts.hankenGrotesk(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.onSurfaceColor,
+                  ),
+                ),
+                Switch(
+                  value: _parkingNeeded,
+                  activeColor: AppTheme.primaryColor,
+                  activeTrackColor: AppTheme.primaryColor.withOpacity(0.3),
+                  inactiveThumbColor: Colors.white,
+                  inactiveTrackColor: const Color(0xFFE8E1EB),
+                  onChanged: (val) {
+                    setState(() {
+                      _parkingNeeded = val;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Vehicle Number (if parking needed)
+            if (_parkingNeeded) ...[
               Text(
-                "Companion Visitors",
+                "Vehicle Registration Number",
                 style: GoogleFonts.hankenGrotesk(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.onSurfaceColor,
                 ),
               ),
-              TextButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _visitorNameControllers.add(TextEditingController());
-                  });
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _vehicleController,
+                decoration: const InputDecoration(
+                  hintText: "e.g., KA-03-HA-1988",
+                  prefixIcon: null,
+                ),
+                validator: (value) {
+                  if (_parkingNeeded && (value == null || value.trim().isEmpty)) {
+                    return 'Please enter vehicle registration number';
+                  }
+                  return null;
                 },
-                icon: const Icon(Icons.add, size: 16, color: AppTheme.primaryColor),
-                label: Text(
-                  "Add Companion",
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
+              ),
+              const SizedBox(height: 20),
+            ],
+
+            // Companion Visitor Section
+            const Divider(color: Color(0xFFF4EBF4), height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Accompanying Attendees",
+                  style: GoogleFonts.hankenGrotesk(
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor,
+                    color: AppTheme.onSurfaceColor,
                   ),
                 ),
-              ),
-            ],
-          ),
-          if (_visitorNameControllers.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _visitorNameControllers.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Companion ${index + 1} Name",
-                            style: GoogleFonts.hankenGrotesk(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.onSurfaceColor,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _visitorNameControllers[index].dispose();
-                                _visitorNameControllers.removeAt(index);
-                              });
-                            },
-                            child: Text(
-                              "Remove",
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _visitorNameControllers.add(TextEditingController());
+                    });
+                  },
+                  icon: const Icon(Icons.add, size: 16, color: AppTheme.primaryColor),
+                  label: Text(
+                    "Add Attendee",
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (_visitorNameControllers.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _visitorNameControllers.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Attendee ${index + 1} Name",
+                              style: GoogleFonts.hankenGrotesk(
+                                fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: AppTheme.errorColor,
+                                color: AppTheme.onSurfaceColor,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _visitorNameControllers[index],
-                        decoration: const InputDecoration(
-                          hintText: "Enter companion's full name",
-                          prefixIcon: null, // Clean, no prefix icon
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _visitorNameControllers[index].dispose();
+                                  _visitorNameControllers.removeAt(index);
+                                });
+                              },
+                              child: Text(
+                                "Remove",
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.errorColor,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return "Please enter companion's name";
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _visitorNameControllers[index],
+                          decoration: const InputDecoration(
+                            hintText: "Enter attendee's full name",
+                            prefixIcon: null, // Clean, no prefix icon
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return "Please enter attendee's name";
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+            const SizedBox(height: 20),
           ],
-          const SizedBox(height: 20),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildCheckoutStep(AppState appState) {
-    double servicePrice = appState.selectedServicePrice ?? 0.0;
-    double parkingPrice = _parkingNeeded ? 10.0 : 0.0;
-    double convenienceFee = 5.0;
+    double servicePrice = appState.selectedServicePrice ?? 85.0;
+    double parkingPrice = _parkingNeeded ? 12.50 : 0.0;
+    double convenienceFee = 5.00;
     double total = servicePrice + parkingPrice + convenienceFee;
 
-    // Check verification status
-    final isVerified = appState.verificationStatus == VerificationStatus.verified;
+    final visitorName = _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : appState.userName;
+    final visitorEmail = _emailController.text.trim().isNotEmpty ? _emailController.text.trim() : appState.userEmail;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Unified Checkout",
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        const SizedBox(height: 16),
-        
-        // Security Banner if unverified
-        if (!isVerified)
-          Container(
-            padding: const EdgeInsets.all(12),
-            margin: const EdgeInsets.only(bottom: 20),
-            decoration: BoxDecoration(
-              color: AppTheme.pendingColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-              border: Border.all(color: AppTheme.pendingColor, width: 0.5),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.warning_amber_rounded, color: AppTheme.pendingColor),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Verification Required",
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.pendingColor,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        "Your profile is not verified. To activate digital gate QR passes instantly, upload a government ID in your Profile tab before checkout, or complete verification at reception.",
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: AppTheme.onSurfaceVariant,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-        // Summary Card
+        // Booking Summary Card
         Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+            border: Border.all(color: AppTheme.outlineVariantColor),
+            boxShadow: AppTheme.ambientShadow,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Booking Summary",
+                      style: GoogleFonts.hankenGrotesk(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.onSurfaceColor,
+                      ),
+                    ),
+                    const Icon(Icons.assignment_outlined, color: AppTheme.outlineColor, size: 20),
+                  ],
+                ),
+              ),
+              const Divider(color: Color(0xFFF1EBF1), height: 1),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Column(
+                  children: [
+                    _buildSummaryDetailRow(
+                      icon: Icons.person_outline,
+                      label: "Visitor",
+                      title: visitorName,
+                      subtitle: visitorEmail,
+                    ),
+                    const Divider(color: Color(0xFFF1EBF1), height: 1),
+                    _buildSummaryDetailRow(
+                      icon: Icons.calendar_today_outlined,
+                      label: "Date & Time",
+                      title: AppTheme.formatDate(_selectedDate),
+                      subtitle: _selectedTimeSlot != null ? _getTimeSlotRange(_selectedTimeSlot!) : "No time slot selected",
+                    ),
+                    const Divider(color: Color(0xFFF1EBF1), height: 1),
+                    _buildSummaryDetailRow(
+                      icon: Icons.location_on_outlined,
+                      label: "Location",
+                      title: _selectedProfessional != null ? _selectedProfessional!["name"] : "Executive Suite 402",
+                      subtitle: _getOrgAddress(appState.selectedOrg),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Payment Method Card
+        Container(
+          width: double.infinity,
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -1070,54 +1316,311 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                appState.selectedOrg!["name"],
+                "Payment Method",
                 style: GoogleFonts.hankenGrotesk(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
+                  color: AppTheme.onSurfaceColor,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                "${appState.selectedOrg!["specialty"]} • ${appState.selectedOrg!["distance"]}",
-                style: const TextStyle(fontSize: 12, color: AppTheme.onSurfaceVariant),
-              ),
-              const Divider(height: 24),
+              const SizedBox(height: 16),
               
-              // Appointment Summary
-              _buildSummaryRow("Professional", _selectedProfessional!["name"]),
-              _buildSummaryRow("Service", appState.selectedService ?? ""),
-              _buildSummaryRow(
-                "Date & Time",
-                "${AppTheme.formatDate(_selectedDate)} at $_selectedTimeSlot",
+              // Credit/Debit Card Selector
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedPaymentMethod = "card";
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                    border: Border.all(
+                      color: _selectedPaymentMethod == "card"
+                          ? AppTheme.primaryColor
+                          : const Color(0xFFF1EBF1),
+                      width: _selectedPaymentMethod == "card" ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _selectedPaymentMethod == "card"
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: AppTheme.primaryColor,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          "Credit / Debit Card",
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.onSurfaceColor,
+                          ),
+                        ),
+                      ),
+                      const Icon(Icons.credit_card, color: AppTheme.outlineColor, size: 20),
+                    ],
+                  ),
+                ),
               ),
-              _buildSummaryRow("Purpose", _visitorPurpose ?? ""),
-              _buildSummaryRow("Parking", _parkingNeeded ? "Requested (Assigned on arrival)" : "Not Required"),
-              _buildSummaryRow("Visitors", _visitorNameControllers.map((c) => c.text).join(", ")),
+              const SizedBox(height: 12),
+              
+              // Apple Pay Selector
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedPaymentMethod = "apple_pay";
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                    border: Border.all(
+                      color: _selectedPaymentMethod == "apple_pay"
+                          ? AppTheme.primaryColor
+                          : const Color(0xFFF1EBF1),
+                      width: _selectedPaymentMethod == "apple_pay" ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _selectedPaymentMethod == "apple_pay"
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: AppTheme.primaryColor,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          "Apple Pay",
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.onSurfaceColor,
+                          ),
+                        ),
+                      ),
+                      const Icon(Icons.phone_android, color: AppTheme.outlineColor, size: 20),
+                    ],
+                  ),
+                ),
+              ),
+              
+              if (_selectedPaymentMethod == "card") ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFAF5FF),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Card Number",
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.outlineColor,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _cardNumberController,
+                        keyboardType: TextInputType.number,
+                        style: GoogleFonts.inter(fontSize: 14),
+                        decoration: InputDecoration(
+                          hintText: "0000 0000 0000 0000",
+                          fillColor: Colors.white,
+                          filled: true,
+                          prefixIcon: const Icon(Icons.credit_card, size: 18, color: AppTheme.outlineColor),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: AppTheme.primaryColor),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Expiry",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.outlineColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                TextFormField(
+                                  controller: _expiryController,
+                                  style: GoogleFonts.inter(fontSize: 14),
+                                  decoration: InputDecoration(
+                                    hintText: "MM/YY",
+                                    fillColor: Colors.white,
+                                    filled: true,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(color: AppTheme.primaryColor),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "CVC",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.outlineColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                TextFormField(
+                                  controller: _cvcController,
+                                  keyboardType: TextInputType.number,
+                                  style: GoogleFonts.inter(fontSize: 14),
+                                  decoration: InputDecoration(
+                                    hintText: "123",
+                                    fillColor: Colors.white,
+                                    filled: true,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(color: AppTheme.primaryColor),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
 
-        // Charge breakdown
-        Text(
-          "Payment Breakdown",
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        const SizedBox(height: 12),
+        // Order Summary Card
         Container(
+          width: double.infinity,
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(AppTheme.radiusXl),
             border: Border.all(color: AppTheme.outlineVariantColor),
+            boxShadow: AppTheme.ambientShadow,
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildPriceRow("Service Fee", servicePrice),
-              if (_parkingNeeded) _buildPriceRow("Valet Parking reservation", parkingPrice),
-              _buildPriceRow("Zuruni Convenience Charge", convenienceFee),
-              const Divider(height: 24),
+              Text(
+                "Order Summary",
+                style: GoogleFonts.hankenGrotesk(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.onSurfaceColor,
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Appointment Fee",
+                    style: GoogleFonts.inter(fontSize: 14, color: AppTheme.onSurfaceVariant),
+                  ),
+                  Text(
+                    "\$${servicePrice.toStringAsFixed(2)}",
+                    style: GoogleFonts.inter(fontSize: 14, color: AppTheme.onSurfaceColor, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _parkingNeeded ? "Parking Fee (Slot B-12)" : "Parking Fee",
+                    style: GoogleFonts.inter(fontSize: 14, color: AppTheme.onSurfaceVariant),
+                  ),
+                  Text(
+                    "\$${parkingPrice.toStringAsFixed(2)}",
+                    style: GoogleFonts.inter(fontSize: 14, color: AppTheme.onSurfaceColor, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Platform Convenience Fee",
+                    style: GoogleFonts.inter(fontSize: 14, color: AppTheme.onSurfaceVariant),
+                  ),
+                  Text(
+                    "\$${convenienceFee.toStringAsFixed(2)}",
+                    style: GoogleFonts.inter(fontSize: 14, color: AppTheme.onSurfaceColor, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(color: Color(0xFFF1EBF1), height: 1),
+              const SizedBox(height: 16),
+              
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1132,12 +1635,61 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
                   Text(
                     "\$${total.toStringAsFixed(2)}",
                     style: GoogleFonts.hankenGrotesk(
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.primaryColor,
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 24),
+              
+              // Pay Now Button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: () => _completeBooking(appState),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.lock_outline, color: Colors.white, size: 16),
+                  label: Text(
+                    "Pay \$${total.toStringAsFixed(2)} Now",
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              // Back to Details Button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton(
+                  onPressed: _prevStep,
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    "Back to Details",
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.onSurfaceVariant,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -1147,23 +1699,57 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     );
   }
 
-  Widget _buildSummaryRow(String label, String value) {
+  Widget _buildSummaryDetailRow({
+    required IconData icon,
+    required String label,
+    required String title,
+    required String subtitle,
+  }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 13, color: AppTheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFAF5FF),
+              shape: BoxShape.circle,
             ),
+            child: Icon(icon, color: AppTheme.primaryColor, size: 20),
           ),
+          const SizedBox(width: 14),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 13, color: AppTheme.onSurfaceColor, fontWeight: FontWeight.bold),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label.toUpperCase(),
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.outlineColor,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  title,
+                  style: GoogleFonts.hankenGrotesk(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.onSurfaceColor,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.inter(
+                    fontSize: 12.5,
+                    color: AppTheme.onSurfaceVariant.withOpacity(0.8),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -1171,27 +1757,51 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     );
   }
 
-  Widget _buildPriceRow(String label, double amount) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 13, color: AppTheme.onSurfaceVariant),
-          ),
-          Text(
-            "\$${amount.toStringAsFixed(2)}",
-            style: const TextStyle(fontSize: 13, color: AppTheme.onSurfaceColor, fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
-    );
+  String _getTimeSlotRange(String slot) {
+    try {
+      final parts = slot.split(" ");
+      final timeParts = parts[0].split(":");
+      int hour = int.parse(timeParts[0]);
+      int minute = int.parse(timeParts[1]);
+      String period = parts[1];
+      
+      int endHour = hour + 1;
+      String endPeriod = period;
+      if (endHour > 12) {
+        endHour = endHour - 12;
+      } else if (endHour == 12) {
+        endPeriod = period == "AM" ? "PM" : "AM";
+      }
+      
+      final minuteStr = minute.toString().padLeft(2, '0');
+      final endHourStr = endHour.toString().padLeft(2, '0');
+      return "$slot - $endHourStr:$minuteStr $endPeriod";
+    } catch (e) {
+      return "$slot - ${slot.replaceAll("AM", "PM")}";
+    }
   }
+
+  String _getOrgAddress(Map<String, dynamic>? org) {
+    if (org == null) return "1200 Financial Blvd, Downtown";
+    final name = org["name"].toString().toLowerCase();
+    final cat = (org["category"] ?? "").toString().toLowerCase();
+    if (cat.contains("health") || name.contains("medical") || name.contains("dental") || name.contains("hospital")) {
+      return "1224 Medical District Blvd, Metro City";
+    } else if (cat.contains("legal") || name.contains("law") || name.contains("associates")) {
+      return "88 Law Chambers Suite 5A, Metro City";
+    } else if (cat.contains("beauty") || name.contains("spa") || name.contains("aesthetic")) {
+      return "44 Glamour Way Plaza, Metro City";
+    }
+    return "1200 Financial Blvd, Downtown";
+  }
+
 
   Widget _buildBottomBar(AppState appState) {
-    if (_currentStep == 0) {
+    if (_currentStep == 3) {
+      return const SizedBox.shrink(); // Inline actions inside Review and Pay step
+    }
+
+    if (_currentStep == 1) {
       final isReady = _selectedProfessional != null && _selectedTimeSlot != null;
       
       return Container(
@@ -1285,27 +1895,43 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: isReady ? _nextStep : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        disabledBackgroundColor: AppTheme.outlineVariantColor,
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                  Row(
+                    children: [
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          side: const BorderSide(color: AppTheme.outlineColor),
+                        ),
+                        onPressed: _prevStep,
+                        child: const Icon(Icons.arrow_back, color: AppTheme.onSurfaceColor),
+                      ),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: isReady ? _nextStep : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                            disabledBackgroundColor: AppTheme.outlineVariantColor,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            "Confirm Selection",
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
-                      child: Text(
-                        "Confirm Selection",
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -1315,8 +1941,11 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
       );
     }
     
-    // Other steps bottom bar (Step 1 and Step 2)
-    final isLastStep = _currentStep == 2;
+    // Other steps bottom bar (Step 0, Step 2, and Step 3)
+    final isLastStep = _currentStep == 3;
+    final isServiceStep = _currentStep == 0;
+    final isServiceSelected = appState.selectedService != null;
+
     return Container(
       padding: const EdgeInsets.all(16.0),
       color: Colors.white,
@@ -1340,22 +1969,28 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
             ],
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-                  if (isLastStep) {
-                    _completeBooking(appState);
-                  } else {
-                    _nextStep();
-                  }
-                },
+                onPressed: (isServiceStep && !isServiceSelected)
+                    ? null
+                    : () {
+                        if (isLastStep) {
+                          _completeBooking(appState);
+                        } else {
+                          _nextStep();
+                        }
+                      },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: AppTheme.primaryColor,
+                  disabledBackgroundColor: AppTheme.outlineVariantColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppTheme.radiusXl),
                   ),
                 ),
                 child: Text(
-                  isLastStep ? "PAY & CONFIRM" : "CONTINUE",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  isLastStep
+                      ? "PAY & CONFIRM"
+                      : (isServiceStep ? "Next: Select Date & Time" : "CONTINUE"),
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ),
             ),

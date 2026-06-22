@@ -211,7 +211,7 @@ class OrgProfileScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const BookingWizardScreen(),
+        builder: (context) => const BookingWizardScreen(initialStep: 1),
       ),
     );
   }
@@ -723,9 +723,26 @@ class OrgProfileScreen extends StatelessWidget {
               height: 52,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  // Book the first service by default
-                  final firstService = (org["services"] as List)[0];
-                  _bookService(context, appState, firstService);
+                  if (!appState.isLoggedIn) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Authentication required to complete booking")),
+                    );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    );
+                    return;
+                  }
+                  appState.clearBookingWizard();
+                  appState.selectedOrg = org;
+                  appState.selectedCategory = org["category"];
+                  
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const BookingWizardScreen(initialStep: 0),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor,
