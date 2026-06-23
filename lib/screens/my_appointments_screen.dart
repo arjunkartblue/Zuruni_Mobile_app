@@ -25,6 +25,9 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
       "rating": "4.9",
       "imageUrl": "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=240",
       "tags": ["Family Med", "Telehealth"],
+      "country": "India",
+      "state": "Maharashtra",
+      "district": "Mumbai",
       "services": [
         {"name": "General Consultation", "price": 120.0, "duration": "30 min"},
         {"name": "Diagnostic Lab Check", "price": 85.0, "duration": "45 min"},
@@ -43,6 +46,9 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
       "rating": "4.8",
       "imageUrl": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=240",
       "tags": ["Corporate", "Estate"],
+      "country": "India",
+      "state": "Maharashtra",
+      "district": "Pune",
       "services": [
         {"name": "Business Legal Advice", "price": 250.0, "duration": "60 min"},
         {"name": "Estate Planning Review", "price": 180.0, "duration": "45 min"}
@@ -60,6 +66,9 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
       "rating": "5.0",
       "imageUrl": "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=240",
       "tags": ["Facials", "Laser"],
+      "country": "India",
+      "state": "Delhi",
+      "district": "New Delhi",
       "services": [
         {"name": "HydraFacial Deluxe", "price": 150.0, "duration": "60 min"},
         {"name": "Full Laser Session", "price": 320.0, "duration": "90 min"}
@@ -76,6 +85,9 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
       "rating": "4.7",
       "imageUrl": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=240",
       "tags": ["Tax Advice", "Wealth"],
+      "country": "United States",
+      "state": "New York",
+      "district": "New York City",
       "services": [
         {"name": "Corporate Tax Strategy", "price": 400.0, "duration": "120 min"},
         {"name": "Wealth Management Audit", "price": 300.0, "duration": "90 min"}
@@ -92,6 +104,9 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
       "rating": "4.6",
       "imageUrl": "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&q=80&w=240",
       "tags": ["Patent", "Court"],
+      "country": "United States",
+      "state": "California",
+      "district": "Los Angeles",
       "services": [
         {"name": "IP Search & Advisory", "price": 200.0, "duration": "60 min"}
       ],
@@ -107,6 +122,9 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
       "rating": "4.9",
       "imageUrl": "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&q=80&w=240",
       "tags": ["Dental", "Braces"],
+      "country": "India",
+      "state": "Karnataka",
+      "district": "Bengaluru",
       "services": [
         {"name": "Teeth Cleaning & Whitening", "price": 95.0, "duration": "30 min"},
         {"name": "Root Canal Treatment", "price": 450.0, "duration": "90 min"}

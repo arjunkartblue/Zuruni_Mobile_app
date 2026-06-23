@@ -16,6 +16,16 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen> {
   String _selectedCategory = "All";
+  String? _selectedCountry = "All";
+  String? _selectedState = "All";
+  String? _selectedDistrict = "All";
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   final List<String> _categories = [
     "All",
@@ -55,6 +65,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
       "rating": "4.9",
       "imageUrl": "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=240",
       "tags": ["Family Med", "Telehealth"],
+      "country": "India",
+      "state": "Maharashtra",
+      "district": "Mumbai",
       "services": [
         {"name": "General Consultation", "price": 120.0, "duration": "30 min"},
         {"name": "Diagnostic Lab Check", "price": 85.0, "duration": "45 min"},
@@ -73,6 +86,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
       "rating": "4.8",
       "imageUrl": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=240",
       "tags": ["Corporate", "Estate"],
+      "country": "India",
+      "state": "Maharashtra",
+      "district": "Pune",
       "services": [
         {"name": "Business Legal Advice", "price": 250.0, "duration": "60 min"},
         {"name": "Estate Planning Review", "price": 180.0, "duration": "45 min"}
@@ -90,6 +106,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
       "rating": "5.0",
       "imageUrl": "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=240",
       "tags": ["Facials", "Laser"],
+      "country": "India",
+      "state": "Delhi",
+      "district": "New Delhi",
       "services": [
         {"name": "HydraFacial Deluxe", "price": 150.0, "duration": "60 min"},
         {"name": "Full Laser Session", "price": 320.0, "duration": "90 min"}
@@ -106,6 +125,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
       "rating": "4.7",
       "imageUrl": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=240",
       "tags": ["Tax Advice", "Wealth"],
+      "country": "United States",
+      "state": "New York",
+      "district": "New York City",
       "services": [
         {"name": "Corporate Tax Strategy", "price": 400.0, "duration": "120 min"},
         {"name": "Wealth Management Audit", "price": 300.0, "duration": "90 min"}
@@ -122,6 +144,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
       "rating": "4.6",
       "imageUrl": "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&q=80&w=240",
       "tags": ["Patent", "Court"],
+      "country": "United States",
+      "state": "California",
+      "district": "Los Angeles",
       "services": [
         {"name": "IP Search & Advisory", "price": 200.0, "duration": "60 min"}
       ],
@@ -137,6 +162,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
       "rating": "4.9",
       "imageUrl": "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&q=80&w=240",
       "tags": ["Dental", "Braces"],
+      "country": "India",
+      "state": "Karnataka",
+      "district": "Bengaluru",
       "services": [
         {"name": "Teeth Cleaning & Whitening", "price": 95.0, "duration": "30 min"},
         {"name": "Root Canal Treatment", "price": 450.0, "duration": "90 min"}
@@ -147,15 +175,300 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }
   ];
 
+  void _showLocationFilterSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(AppTheme.radius2Xl),
+          topRight: Radius.circular(AppTheme.radius2Xl),
+        ),
+      ),
+      isScrollControlled: true,
+      builder: (context) {
+        String tempCountry = _selectedCountry ?? "All";
+        String tempState = _selectedState ?? "All";
+        String tempDistrict = _selectedDistrict ?? "All";
+
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            List<String> getCountries() {
+              final list = _organizations
+                  .map((org) => org["country"] as String?)
+                  .where((c) => c != null)
+                  .map((c) => c!)
+                  .toSet()
+                  .toList();
+              return ["All", ...list];
+            }
+
+            List<String> getStates() {
+              final list = _organizations
+                  .where((org) => tempCountry == "All" || org["country"] == tempCountry)
+                  .map((org) => org["state"] as String?)
+                  .where((s) => s != null)
+                  .map((s) => s!)
+                  .toSet()
+                  .toList();
+              return ["All", ...list];
+            }
+
+            List<String> getDistricts() {
+              final list = _organizations
+                  .where((org) => tempCountry == "All" || org["country"] == tempCountry)
+                  .where((org) => tempState == "All" || org["state"] == tempState)
+                  .map((org) => org["district"] as String?)
+                  .where((d) => d != null)
+                  .map((d) => d!)
+                  .toSet()
+                  .toList();
+              return ["All", ...list];
+            }
+
+            final countries = getCountries();
+            final states = getStates();
+            final districts = getDistricts();
+
+            if (!countries.contains(tempCountry)) tempCountry = "All";
+            if (!states.contains(tempState)) tempState = "All";
+            if (!districts.contains(tempDistrict)) tempDistrict = "All";
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Location Filter",
+                        style: GoogleFonts.hankenGrotesk(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.onSurfaceColor,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setModalState(() {
+                            tempCountry = "All";
+                            tempState = "All";
+                            tempDistrict = "All";
+                          });
+                        },
+                        child: Text(
+                          "Reset All",
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.errorColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Filter organizations by location when location services are disabled.",
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: AppTheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Country Dropdown
+                  Text(
+                    "COUNTRY",
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.onSurfaceVariant.withOpacity(0.6),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  DropdownButtonFormField<String>(
+                    value: tempCountry,
+                    items: countries.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setModalState(() {
+                          tempCountry = val;
+                          tempState = "All";
+                          tempDistrict = "All";
+                        });
+                      }
+                    },
+                    decoration: InputDecoration(
+                      fillColor: Colors.white,
+                      filled: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // State Dropdown
+                  Text(
+                    "STATE",
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.onSurfaceVariant.withOpacity(0.6),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  DropdownButtonFormField<String>(
+                    value: tempState,
+                    items: states.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setModalState(() {
+                          tempState = val;
+                          tempDistrict = "All";
+                        });
+                      }
+                    },
+                    decoration: InputDecoration(
+                      fillColor: Colors.white,
+                      filled: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // District Dropdown
+                  Text(
+                    "DISTRICT",
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.onSurfaceVariant.withOpacity(0.6),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  DropdownButtonFormField<String>(
+                    value: tempDistrict,
+                    items: districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setModalState(() {
+                          tempDistrict = val;
+                        });
+                      }
+                    },
+                    decoration: InputDecoration(
+                      fillColor: Colors.white,
+                      filled: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _selectedCountry = tempCountry;
+                          _selectedState = tempState;
+                          _selectedDistrict = tempDistrict;
+                        });
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        "Apply Location Filter",
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final theme = Theme.of(context);
 
-    // Filter organizations by category
-    final filteredOrgs = _selectedCategory == "All"
-        ? _organizations
-        : _organizations.where((org) => org["category"] == _selectedCategory).toList();
+    final searchQuery = _searchController.text.toLowerCase().trim();
+    final filteredOrgs = _organizations.where((org) {
+      final matchCategory = _selectedCategory == "All" || org["category"] == _selectedCategory;
+      if (!matchCategory) return false;
+
+      final matchCountry = _selectedCountry == null || _selectedCountry == "All" || org["country"] == _selectedCountry;
+      if (!matchCountry) return false;
+
+      final matchState = _selectedState == null || _selectedState == "All" || org["state"] == _selectedState;
+      if (!matchState) return false;
+
+      final matchDistrict = _selectedDistrict == null || _selectedDistrict == "All" || org["district"] == _selectedDistrict;
+      if (!matchDistrict) return false;
+
+      if (searchQuery.isNotEmpty) {
+        final name = (org["name"] as String? ?? "").toLowerCase();
+        final specialty = (org["specialty"] as String? ?? "").toLowerCase();
+        final tags = (org["tags"] as List<dynamic>?)?.map((t) => t.toString().toLowerCase()).toList() ?? [];
+        
+        final matchesName = name.contains(searchQuery);
+        final matchesSpecialty = specialty.contains(searchQuery);
+        final matchesTags = tags.any((tag) => tag.contains(searchQuery));
+        
+        return matchesName || matchesSpecialty || matchesTags;
+      }
+      
+      return true;
+    }).toList();
 
     // Check if any upcoming appointment is today and has a token number
     final hasTodayToken = appState.appointments.any((apt) =>
@@ -478,9 +791,34 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 boxShadow: AppTheme.ambientShadow,
               ),
               child: TextFormField(
-                decoration: const InputDecoration(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {});
+                },
+                decoration: InputDecoration(
                   hintText: "Search services, professionals, or locations...",
-                  prefixIcon: Icon(Icons.search, color: AppTheme.outlineColor),
+                  prefixIcon: const Icon(Icons.search, color: AppTheme.outlineColor),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if ((_selectedCountry != null && _selectedCountry != "All") ||
+                          (_selectedState != null && _selectedState != "All") ||
+                          (_selectedDistrict != null && _selectedDistrict != "All"))
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppTheme.primaryColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      IconButton(
+                        icon: const Icon(Icons.filter_list, color: AppTheme.primaryColor),
+                        onPressed: () => _showLocationFilterSheet(context),
+                      ),
+                    ],
+                  ),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
@@ -588,10 +926,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     "Recommended Near You",
                     style: theme.textTheme.headlineSmall,
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.filter_list),
-                  onPressed: () {},
                 ),
               ],
             ),
