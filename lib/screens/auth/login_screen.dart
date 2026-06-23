@@ -188,22 +188,9 @@ class _LoginScreenState extends State<LoginScreen>
                         tag: 'zuruni_brand',
                         child: Material(
                           color: Colors.transparent,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/app_logo.svg',
-                                height: 28,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 2.0),
-                                child: SvgPicture.asset(
-                                  'assets/images/app_text.svg',
-                                  height: 28,
-                                ),
-                              ),
-                            ],
+                          child: SvgPicture.asset(
+                            'assets/images/zuruni_logo.svg',
+                            height: 28,
                           ),
                         ),
                       ),
