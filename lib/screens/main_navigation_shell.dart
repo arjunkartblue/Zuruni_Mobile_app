@@ -269,7 +269,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           ),
           ListTile(
             leading: const Icon(Icons.search, color: AppTheme.primaryColor),
-            title: const Text('Explore & Search'),
+            title: const Text('Explore '),
             onTap: () {
               Navigator.pop(context);
               setState(() {
@@ -288,8 +288,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.badge_outlined, color: AppTheme.primaryColor),
-            title: const Text('Identity Pass'),
+            leading: const Icon(Icons.person_outline, color: AppTheme.primaryColor),
+            title: const Text('Profile'),
             onTap: () {
               Navigator.pop(context);
               setState(() {
@@ -297,6 +297,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
               });
             },
           ),
+          const Divider(),
           ListTile(
             leading: const Icon(Icons.help_outline, color: AppTheme.primaryColor),
             title: const Text('Help & FAQ'),

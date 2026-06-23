@@ -7,9 +7,11 @@ class Appointment {
   final String professionalName;
   final String organizationName;
   final String category;
+  final String serviceName;
   final DateTime date;
   final String timeSlot;
   String status; // "Verified", "Pending", "Action Required", "Cancelled"
+  final String? tokenNumber; // Added for Token System
   
   // Visitor access & facility details
   final String? gateAccessCode;
@@ -23,9 +25,11 @@ class Appointment {
     required this.professionalName,
     required this.organizationName,
     required this.category,
+    required this.serviceName,
     required this.date,
     required this.timeSlot,
     required this.status,
+    this.tokenNumber,
     this.gateAccessCode,
     this.doorAccessCode,
     this.parkingBay,
@@ -33,15 +37,17 @@ class Appointment {
     this.activeTimelineIndex = 0,
   });
 
-  Appointment copyWith({String? status}) {
+  Appointment copyWith({String? status, String? tokenNumber}) {
     return Appointment(
       id: id,
       professionalName: professionalName,
       organizationName: organizationName,
       category: category,
+      serviceName: serviceName,
       date: date,
       timeSlot: timeSlot,
       status: status ?? this.status,
+      tokenNumber: tokenNumber ?? this.tokenNumber,
       gateAccessCode: gateAccessCode,
       doorAccessCode: doorAccessCode,
       parkingBay: parkingBay,
@@ -97,9 +103,11 @@ class AppState extends ChangeNotifier {
       professionalName: "Dr. Aris Thorne",
       organizationName: "Vantage Medical Group",
       category: "Healthcare",
-      date: DateTime.now().add(const Duration(days: 1)),
+      serviceName: "General Consultation",
+      date: DateTime.now(), // Testing: dated today
       timeSlot: "09:30 AM",
       status: "Verified",
+      tokenNumber: "T-15", // Healthcare organization with token system enabled
       gateAccessCode: "G-7749",
       doorAccessCode: "D-9201",
       parkingBay: "B-12 (P2 Level)",
@@ -115,12 +123,14 @@ class AppState extends ChangeNotifier {
     ),
     Appointment(
       id: "APT-88271",
-      professionalName: "Studio Lumina",
-      organizationName: "Studio Lumina Spa",
+      professionalName: "Elena Rostova",
+      organizationName: "The Aesthetic Loft",
       category: "Beauty",
+      serviceName: "HydraFacial Deluxe",
       date: DateTime.now().add(const Duration(days: 3)),
       timeSlot: "02:00 PM",
       status: "Pending",
+      tokenNumber: null, // Beauty organization without token system
       gateAccessCode: null,
       doorAccessCode: null,
       parkingBay: null,
@@ -170,12 +180,48 @@ class AppState extends ChangeNotifier {
   String get uploadedDocType => _documents.isNotEmpty ? _documents.last.type : "";
   String get uploadedDocName => _documents.isNotEmpty ? _documents.last.fileName : "";
   
-  List<Appointment> get appointments => _appointments.where((apt) => apt.status != "Cancelled").toList();
-  List<Appointment> get cancelledAppointments => _appointments.where((apt) => apt.status == "Cancelled").toList();
+  DateTime _combineDateAndTime(DateTime date, String timeSlot) {
+    try {
+      final parts = timeSlot.split(" ");
+      final timeParts = parts[0].split(":");
+      int hour = int.parse(timeParts[0]);
+      final minute = int.parse(timeParts[1]);
+      final period = parts[1].toUpperCase();
+
+      if (period == "PM" && hour != 12) {
+        hour += 12;
+      } else if (period == "AM" && hour == 12) {
+        hour = 0;
+      }
+      return DateTime(date.year, date.month, date.day, hour, minute);
+    } catch (_) {
+      return date;
+    }
+  }
+
+  List<Appointment> get appointments {
+    final list = _appointments.where((apt) => apt.status != "Cancelled").toList();
+    list.sort((a, b) {
+      final aDateTime = _combineDateAndTime(a.date, a.timeSlot);
+      final bDateTime = _combineDateAndTime(b.date, b.timeSlot);
+      return aDateTime.compareTo(bDateTime);
+    });
+    return list;
+  }
+
+  List<Appointment> get cancelledAppointments {
+    final list = _appointments.where((apt) => apt.status == "Cancelled").toList();
+    list.sort((a, b) {
+      final aDateTime = _combineDateAndTime(a.date, a.timeSlot);
+      final bDateTime = _combineDateAndTime(b.date, b.timeSlot);
+      return aDateTime.compareTo(bDateTime);
+    });
+    return list;
+  }
   
   // Find active operational appointment (e.g. verified appointment happening soonest)
   Appointment? get activeOperationalAppointment {
-    final active = _appointments.where((apt) => apt.status == "Verified").toList();
+    final active = appointments.where((apt) => apt.status == "Verified").toList();
     if (active.isEmpty) return null;
     return active.first;
   }

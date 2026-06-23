@@ -7,7 +7,14 @@ import 'appointment_confirmed_screen.dart';
 
 class BookingWizardScreen extends StatefulWidget {
   final int initialStep;
-  const BookingWizardScreen({Key? key, this.initialStep = 0}) : super(key: key);
+  final String? preselectedProfessionalName;
+  final String? reschedulingAppointmentId;
+  const BookingWizardScreen({
+    Key? key,
+    this.initialStep = 0,
+    this.preselectedProfessionalName,
+    this.reschedulingAppointmentId,
+  }) : super(key: key);
 
   @override
   State<BookingWizardScreen> createState() => _BookingWizardScreenState();
@@ -113,7 +120,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     if (lower.contains("thorne")) {
       return "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=240";
     } else if (lower.contains("oswald")) {
-      return "https://images.unsplash.com/photo-1594824813573-246434de83fb?auto=format&fit=crop&q=80&w=240";
+      return "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=240";
     } else if (lower.contains("paulson")) {
       return "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=240";
     } else if (lower.contains("sterling")) {
@@ -158,8 +165,8 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     final padDays = startWeekday - 1;
     final calendarStartDate = firstDay.subtract(Duration(days: padDays));
     
-    // Generate exactly 21 days (3 weeks) to match the mockup grid exactly
-    return List.generate(21, (index) => calendarStartDate.add(Duration(days: index)));
+    // Generate exactly 35 days (5 weeks) to show a complete 5-row calendar
+    return List.generate(35, (index) => calendarStartDate.add(Duration(days: index)));
   }
 
   String _getMonthYearString(DateTime date) {
@@ -323,15 +330,21 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     // Generate mock parking bay & gate codes if they had verified profile
     final hasVerified = appState.verificationStatus == VerificationStatus.verified;
     
+    final isHealthcare = (appState.selectedCategory == "Healthcare") ||
+        (appState.selectedOrg != null && appState.selectedOrg!["category"] == "Healthcare");
+    final generatedToken = isHealthcare ? "T-${10 + (DateTime.now().millisecond) % 40}" : null;
+
     // Create new appointment model
     final newApt = Appointment(
       id: "APT-${10000 + (DateTime.now().millisecond * 17) % 90000}",
       professionalName: _selectedProfessional!["name"],
       organizationName: appState.selectedOrg!["name"],
       category: appState.selectedCategory ?? "Healthcare",
+      serviceName: appState.selectedService ?? "General Consultation",
       date: _selectedDate,
       timeSlot: _selectedTimeSlot!,
       status: hasVerified ? "Verified" : "Pending",
+      tokenNumber: generatedToken,
       gateAccessCode: hasVerified ? "G-${4000 + (DateTime.now().millisecond) % 6000}" : null,
       doorAccessCode: hasVerified ? "D-${1000 + (DateTime.now().millisecond) % 9000}" : null,
       parkingBay: (_parkingNeeded && hasVerified) 
@@ -355,6 +368,10 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           ],
       activeTimelineIndex: 0,
     );
+
+    if (widget.reschedulingAppointmentId != null) {
+      appState.cancelAppointment(widget.reschedulingAppointmentId!);
+    }
 
     appState.addAppointment(newApt);
 
@@ -389,7 +406,18 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     if (_selectedProfessional == null && appState.selectedOrg != null) {
       final professionals = appState.selectedOrg!["professionals"] as List;
       if (professionals.isNotEmpty) {
-        _selectedProfessional = professionals.first;
+        if (widget.preselectedProfessionalName != null) {
+          Map<String, dynamic>? matchedProf;
+          for (final p in professionals) {
+            if (p is Map && p["name"] == widget.preselectedProfessionalName) {
+              matchedProf = p as Map<String, dynamic>;
+              break;
+            }
+          }
+          _selectedProfessional = matchedProf ?? (professionals.first as Map<String, dynamic>);
+        } else {
+          _selectedProfessional = professionals.first;
+        }
       }
     }
 
@@ -667,7 +695,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
         Column(
           children: List.generate(professionals.length, (index) {
             final prof = professionals[index];
-            final isSelected = _selectedProfessional == prof;
+            final isSelected = _selectedProfessional != null && _selectedProfessional!["name"] == prof["name"];
             final avatarUrl = _getProfessionalAvatar(prof["name"]);
             
             // availability text: Available Today for index 0, Next: Tue, May 14 (or equivalent) for index 1
@@ -1228,6 +1256,129 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     );
   }
 
+  void _showEditOptionsSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(AppTheme.radius2Xl),
+          topRight: Radius.circular(AppTheme.radius2Xl),
+        ),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Edit Booking Details",
+                  style: GoogleFonts.hankenGrotesk(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.onSurfaceColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Select which section you would like to modify:",
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: AppTheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Edit Visitor details
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFAF5FF),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.person_outline, color: AppTheme.primaryColor, size: 20),
+                  ),
+                  title: Text(
+                    "Visitor & Attendees",
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppTheme.onSurfaceColor),
+                  ),
+                  subtitle: Text(
+                    "Change name, contact info, or add/remove attendees",
+                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.onSurfaceVariant),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _currentStep = 2; // Visitor step
+                    });
+                  },
+                ),
+                const Divider(color: Color(0xFFF1EBF1), height: 1),
+                
+                // Edit Date & Time
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFAF5FF),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.calendar_today_outlined, color: AppTheme.primaryColor, size: 20),
+                  ),
+                  title: Text(
+                    "Date & Time",
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppTheme.onSurfaceColor),
+                  ),
+                  subtitle: Text(
+                    "Choose a different date, time slot, or professional",
+                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.onSurfaceVariant),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _currentStep = 1; // Schedule step
+                    });
+                  },
+                ),
+                const Divider(color: Color(0xFFF1EBF1), height: 1),
+                
+                // Edit Service
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFAF5FF),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.design_services_outlined, color: AppTheme.primaryColor, size: 20),
+                  ),
+                  title: Text(
+                    "Service Selection",
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppTheme.onSurfaceColor),
+                  ),
+                  subtitle: Text(
+                    "Select a different service or check pricing",
+                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.onSurfaceVariant),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _currentStep = 0; // Service step
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildCheckoutStep(AppState appState) {
     double servicePrice = appState.selectedServicePrice ?? 85.0;
     double parkingPrice = _parkingNeeded ? 12.50 : 0.0;
@@ -1236,6 +1387,11 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
 
     final visitorName = _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : appState.userName;
     final visitorEmail = _emailController.text.trim().isNotEmpty ? _emailController.text.trim() : appState.userEmail;
+
+    final attendeeNames = _visitorNameControllers
+        .map((c) => c.text.trim())
+        .where((name) => name.isNotEmpty)
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1265,7 +1421,21 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
                         color: AppTheme.onSurfaceColor,
                       ),
                     ),
-                    const Icon(Icons.assignment_outlined, color: AppTheme.outlineColor, size: 20),
+                    GestureDetector(
+                      onTap: () => _showEditOptionsSheet(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.08),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.edit_outlined,
+                          color: AppTheme.primaryColor,
+                          size: 18,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1280,6 +1450,15 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
                       title: visitorName,
                       subtitle: visitorEmail,
                     ),
+                    if (attendeeNames.isNotEmpty) ...[
+                      const Divider(color: Color(0xFFF1EBF1), height: 1),
+                      _buildSummaryDetailRow(
+                        icon: Icons.group_outlined,
+                        label: "Attendees",
+                        title: attendeeNames.join(", "),
+                        subtitle: "${attendeeNames.length} additional attendee(s)",
+                      ),
+                    ],
                     const Divider(color: Color(0xFFF1EBF1), height: 1),
                     _buildSummaryDetailRow(
                       icon: Icons.calendar_today_outlined,

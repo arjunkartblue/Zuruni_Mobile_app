@@ -325,6 +325,47 @@ class _AppointmentConfirmedScreenState extends State<AppointmentConfirmedScreen>
                     const Divider(color: Color(0xFFF1EBF1), height: 1),
                     const SizedBox(height: 16),
 
+                    if (widget.appointment.tokenNumber != null) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "TOKEN NUMBER",
+                                style: GoogleFonts.jetBrainsMono(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryColor,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  widget.appointment.tokenNumber!,
+                                  style: GoogleFonts.hankenGrotesk(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const Divider(color: Color(0xFFF1EBF1), height: 1),
+                      const SizedBox(height: 16),
+                    ],
+
                     // Reference ID Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -15,9 +15,10 @@ class ExploreScreen extends StatefulWidget {
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
-  String _selectedCategory = "Healthcare";
+  String _selectedCategory = "All";
 
   final List<String> _categories = [
+    "All",
     "Healthcare",
     "Legal",
     "Consulting",
@@ -25,6 +26,25 @@ class _ExploreScreenState extends State<ExploreScreen> {
     "Fitness",
     "Education",
   ];
+
+  bool _isToday(DateTime date) {
+    final now = DateTime.now();
+    return date.year == now.year && date.month == now.month && date.day == now.day;
+  }
+
+  String _getCurrentActiveToken(String tokenStr) {
+    final digits = RegExp(r'\d+').stringMatch(tokenStr);
+    if (digits != null) {
+      final numVal = int.tryParse(digits);
+      if (numVal != null) {
+        final activeVal = numVal - 4;
+        final safeActiveVal = activeVal < 1 ? 1 : activeVal;
+        final prefix = tokenStr.split(digits)[0];
+        return "$prefix$safeActiveVal";
+      }
+    }
+    return "T-1";
+  }
 
   final List<Map<String, dynamic>> _organizations = [
     {
@@ -133,37 +153,258 @@ class _ExploreScreenState extends State<ExploreScreen> {
     final theme = Theme.of(context);
 
     // Filter organizations by category
-    final filteredOrgs = _organizations
-        .where((org) => org["category"] == _selectedCategory)
-        .toList();
+    final filteredOrgs = _selectedCategory == "All"
+        ? _organizations
+        : _organizations.where((org) => org["category"] == _selectedCategory).toList();
+
+    // Check if any upcoming appointment is today and has a token number
+    final hasTodayToken = appState.appointments.any((apt) =>
+        apt.tokenNumber != null && _isToday(apt.date)
+    );
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                boxShadow: AppTheme.ambientShadow,
-              ),
-              child: TextFormField(
-                decoration: const InputDecoration(
-                  hintText: "Search services, professionals, or locations...",
-                  prefixIcon: Icon(Icons.search, color: AppTheme.outlineColor),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                ),
+          // Upcoming Appointments (If logged in) - now at the top
+          if (appState.isLoggedIn && appState.appointments.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      "Upcoming Appointments",
+                      style: theme.textTheme.headlineSmall,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      // Navigate to Bookings Tab in Navigation Shell
+                      // By notifying main shell, but here we can just show a SnackBar or navigate
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Upcoming Appointments list is shown in Bookings tab")),
+                      );
+                    },
+                    child: const Text(
+                      "View All",
+                      style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
+            SizedBox(
+              height: hasTodayToken ? 165 : 140,
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: appState.appointments.length,
+                itemBuilder: (context, index) {
+                  final appointment = appState.appointments[index];
+                  final isVerified = appointment.status == "Verified";
+                  
+                  return Container(
+                    width: 280,
+                    margin: const EdgeInsets.only(right: 16.0, bottom: 8),
+                    decoration: BoxDecoration(
+                      color: isVerified ? AppTheme.primaryColor : Colors.white,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                      border: isVerified ? null : Border.all(color: AppTheme.outlineVariantColor),
+                      boxShadow: AppTheme.ambientShadow,
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                        onTap: () {
+                          // Tap opens the dashboard for verified appointment
+                          if (isVerified) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AppointmentOverviewScreen(appointment: appointment),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Clearance Pending. Pass will activate once verified.")),
+                            );
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          appointment.category.toUpperCase(),
+                                          style: GoogleFonts.jetBrainsMono(
+                                            color: isVerified ? Colors.white.withOpacity(0.8) : AppTheme.onSurfaceVariant,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.0,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          appointment.professionalName,
+                                          style: GoogleFonts.hankenGrotesk(
+                                            color: isVerified ? Colors.white : AppTheme.onSurfaceColor,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.all(8.0),
+                                    decoration: BoxDecoration(
+                                      color: isVerified ? Colors.white.withOpacity(0.2) : AppTheme.surfaceContainerColor,
+                                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                                    ),
+                                    child: Icon(
+                                      appointment.category == "Healthcare" ? Icons.medical_services_outlined : Icons.face_outlined,
+                                      color: isVerified ? Colors.white : AppTheme.primaryColor,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Spacer(),
+                              Wrap(
+                                spacing: 12.0,
+                                runSpacing: 4.0,
+                                children: [
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.calendar_today_outlined,
+                                        size: 14,
+                                        color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        AppTheme.formatDate(appointment.date),
+                                        style: TextStyle(
+                                          color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.access_time,
+                                        size: 14,
+                                        color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        appointment.timeSlot,
+                                        style: TextStyle(
+                                          color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              if (appointment.tokenNumber != null && _isToday(appointment.date)) ...[
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: isVerified ? Colors.white.withOpacity(0.15) : AppTheme.primaryColor.withOpacity(0.08),
+                                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                                    border: Border.all(
+                                      color: isVerified ? Colors.white.withOpacity(0.25) : AppTheme.primaryColor.withOpacity(0.15)
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.confirmation_num_outlined,
+                                            size: 12,
+                                            color: isVerified ? Colors.white : AppTheme.primaryColor,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            "Token: ",
+                                            style: TextStyle(
+                                              color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            appointment.tokenNumber!,
+                                            style: TextStyle(
+                                              color: isVerified ? Colors.white : AppTheme.primaryColor,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w900,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            "Active: ",
+                                            style: TextStyle(
+                                              color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            _getCurrentActiveToken(appointment.tokenNumber!),
+                                            style: TextStyle(
+                                              color: isVerified ? Colors.white : AppTheme.primaryColor,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w900,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
 
-          // Guest Sign In Prompt Card
+          // Guest Sign In Prompt Card (If not logged in) - now at the top
           if (!appState.isLoggedIn)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -227,178 +468,26 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ),
             ),
 
-          // Upcoming Appointments (If logged in)
-          if (appState.isLoggedIn) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      "Upcoming Appointments",
-                      style: theme.textTheme.headlineSmall,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // Navigate to Bookings Tab in Navigation Shell
-                      // By notifying main shell, but here we can just show a SnackBar or navigate
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Upcoming Appointments list is shown in Bookings tab")),
-                      );
-                    },
-                    child: const Text(
-                      "View All",
-                      style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ],
+          // Search Bar - shifted down
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                boxShadow: AppTheme.ambientShadow,
+              ),
+              child: TextFormField(
+                decoration: const InputDecoration(
+                  hintText: "Search services, professionals, or locations...",
+                  prefixIcon: Icon(Icons.search, color: AppTheme.outlineColor),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
               ),
             ),
-            SizedBox(
-              height: 140,
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                itemCount: appState.appointments.length,
-                itemBuilder: (context, index) {
-                  final appointment = appState.appointments[index];
-                  final isVerified = appointment.status == "Verified";
-                  
-                  return Container(
-                    width: 280,
-                    margin: const EdgeInsets.only(right: 16.0, bottom: 8),
-                    decoration: BoxDecoration(
-                      color: isVerified ? AppTheme.primaryColor : Colors.white,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                      border: isVerified ? null : Border.all(color: AppTheme.outlineVariantColor),
-                      boxShadow: AppTheme.ambientShadow,
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                        onTap: () {
-                          // Tap opens the dashboard for verified appointment
-                          if (isVerified) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AppointmentOverviewScreen(appointment: appointment),
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Clearance Pending. Pass will activate once verified.")),
-                            );
-                          }
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          appointment.category.toUpperCase(),
-                                          style: GoogleFonts.jetBrainsMono(
-                                            color: isVerified ? Colors.white.withOpacity(0.8) : AppTheme.onSurfaceVariant,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                            letterSpacing: 1.0,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          appointment.professionalName,
-                                          style: GoogleFonts.hankenGrotesk(
-                                            color: isVerified ? Colors.white : AppTheme.onSurfaceColor,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.all(8.0),
-                                    decoration: BoxDecoration(
-                                      color: isVerified ? Colors.white.withOpacity(0.2) : AppTheme.surfaceContainerColor,
-                                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                                    ),
-                                    child: Icon(
-                                      appointment.category == "Healthcare" ? Icons.medical_services_outlined : Icons.face_outlined,
-                                      color: isVerified ? Colors.white : AppTheme.primaryColor,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 12.0,
-                                runSpacing: 4.0,
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.calendar_today_outlined,
-                                        size: 14,
-                                        color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        AppTheme.formatDate(appointment.date),
-                                        style: TextStyle(
-                                          color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.access_time,
-                                        size: 14,
-                                        color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        appointment.timeSlot,
-                                        style: TextStyle(
-                                          color: isVerified ? Colors.white70 : AppTheme.onSurfaceVariant,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
+          ),
 
           // Categories Section
           Padding(
@@ -421,6 +510,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 
                 IconData categoryIcon = Icons.help_outline;
                 switch (category) {
+                  case "All":
+                    categoryIcon = Icons.grid_view_outlined;
+                    break;
                   case "Healthcare":
                     categoryIcon = Icons.health_and_safety_outlined;
                     break;

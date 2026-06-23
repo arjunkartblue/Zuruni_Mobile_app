@@ -234,6 +234,22 @@ class _AppointmentOverviewScreenState extends State<AppointmentOverviewScreen> {
                     const Divider(color: Color(0xFFF1EBF1), height: 1),
                     const SizedBox(height: 16),
 
+                    // Service Row
+                    _buildDetailRow(
+                      icon: Icons.assignment_outlined,
+                      label: "Service",
+                      value: widget.appointment.serviceName,
+                    ),
+                    if (widget.appointment.tokenNumber != null) ...[
+                      const SizedBox(height: 16),
+                      _buildDetailRow(
+                        icon: Icons.confirmation_num_outlined,
+                        label: "Token Number",
+                        value: widget.appointment.tokenNumber!,
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+
                     // Date & Time Row
                     _buildDetailRow(
                       icon: Icons.calendar_today_outlined,

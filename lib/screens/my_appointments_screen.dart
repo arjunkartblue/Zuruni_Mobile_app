@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/theme.dart';
 import '../state/app_state.dart';
 import 'visitor_access/appointment_overview_screen.dart';
+import 'booking_flow/booking_wizard_screen.dart';
 
 class MyAppointmentsScreen extends StatefulWidget {
   const MyAppointmentsScreen({super.key});
@@ -14,6 +15,182 @@ class MyAppointmentsScreen extends StatefulWidget {
 
 class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
   String _filter = "Upcoming"; // "Upcoming", "Past"
+
+  final List<Map<String, dynamic>> _organizations = [
+    {
+      "name": "Vantage Medical Group",
+      "category": "Healthcare",
+      "specialty": "General Health",
+      "distance": "1.2 miles away",
+      "rating": "4.9",
+      "imageUrl": "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=240",
+      "tags": ["Family Med", "Telehealth"],
+      "services": [
+        {"name": "General Consultation", "price": 120.0, "duration": "30 min"},
+        {"name": "Diagnostic Lab Check", "price": 85.0, "duration": "45 min"},
+        {"name": "Specialist Referral Review", "price": 200.0, "duration": "60 min"}
+      ],
+      "professionals": [
+        {"name": "Dr. Aris Thorne", "role": "Senior Cardiologist", "rating": "4.9"},
+        {"name": "Dr. Clara Oswald", "role": "Pediatrician", "rating": "4.8"},
+      ]
+    },
+    {
+      "name": "Sterling & Associates",
+      "category": "Legal",
+      "specialty": "Legal Services",
+      "distance": "0.8 miles away",
+      "rating": "4.8",
+      "imageUrl": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=240",
+      "tags": ["Corporate", "Estate"],
+      "services": [
+        {"name": "Business Legal Advice", "price": 250.0, "duration": "60 min"},
+        {"name": "Estate Planning Review", "price": 180.0, "duration": "45 min"}
+      ],
+      "professionals": [
+        {"name": "Marcus Sterling", "role": "Managing Partner", "rating": "4.9"},
+        {"name": "Sarah Jenkins", "role": "Corporate Counsel", "rating": "4.7"}
+      ]
+    },
+    {
+      "name": "The Aesthetic Loft",
+      "category": "Beauty",
+      "specialty": "Skincare & Laser",
+      "distance": "2.5 miles away",
+      "rating": "5.0",
+      "imageUrl": "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=240",
+      "tags": ["Facials", "Laser"],
+      "services": [
+        {"name": "HydraFacial Deluxe", "price": 150.0, "duration": "60 min"},
+        {"name": "Full Laser Session", "price": 320.0, "duration": "90 min"}
+      ],
+      "professionals": [
+        {"name": "Elena Rostova", "role": "Senior Esthetician", "rating": "5.0"}
+      ]
+    },
+    {
+      "name": "Nexus Strategy Group",
+      "category": "Consulting",
+      "specialty": "Financial Consulting",
+      "distance": "3.1 miles away",
+      "rating": "4.7",
+      "imageUrl": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=240",
+      "tags": ["Tax Advice", "Wealth"],
+      "services": [
+        {"name": "Corporate Tax Strategy", "price": 400.0, "duration": "120 min"},
+        {"name": "Wealth Management Audit", "price": 300.0, "duration": "90 min"}
+      ],
+      "professionals": [
+        {"name": "David Vance", "role": "Chief Strategist", "rating": "4.8"}
+      ]
+    },
+    {
+      "name": "Ascent Legal Partners",
+      "category": "Legal",
+      "specialty": "Litigation & IP",
+      "distance": "1.4 miles away",
+      "rating": "4.6",
+      "imageUrl": "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&q=80&w=240",
+      "tags": ["Patent", "Court"],
+      "services": [
+        {"name": "IP Search & Advisory", "price": 200.0, "duration": "60 min"}
+      ],
+      "professionals": [
+        {"name": "Harvey Specter", "role": "Partner", "rating": "4.9"}
+      ]
+    },
+    {
+      "name": "Lumina Dental Center",
+      "category": "Healthcare",
+      "specialty": "Orthodontics",
+      "distance": "1.7 miles away",
+      "rating": "4.9",
+      "imageUrl": "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&q=80&w=240",
+      "tags": ["Dental", "Braces"],
+      "services": [
+        {"name": "Teeth Cleaning & Whitening", "price": 95.0, "duration": "30 min"},
+        {"name": "Root Canal Treatment", "price": 450.0, "duration": "90 min"}
+      ],
+      "professionals": [
+        {"name": "Dr. Sarah Paulson", "role": "Orthodontist", "rating": "4.9"}
+      ]
+    }
+  ];
+
+  void _handleRebook(BuildContext context, AppState appState, Appointment appointment) {
+    Map<String, dynamic>? matchedOrg;
+    for (final org in _organizations) {
+      if (org["name"] == appointment.organizationName) {
+        matchedOrg = org;
+        break;
+      }
+    }
+    matchedOrg ??= _organizations.first;
+
+    final services = matchedOrg["services"] as List;
+    Map<String, dynamic>? matchedService;
+    for (final service in services) {
+      if (service is Map<String, dynamic> && service["name"] == appointment.serviceName) {
+        matchedService = service;
+        break;
+      }
+    }
+    matchedService ??= services.first as Map<String, dynamic>;
+
+    appState.clearBookingWizard();
+    appState.selectedOrg = matchedOrg;
+    appState.selectedCategory = matchedOrg["category"];
+    appState.selectedService = appointment.serviceName;
+    appState.selectedServicePrice = (matchedService["price"] as num).toDouble();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BookingWizardScreen(
+          initialStep: 1,
+          preselectedProfessionalName: appointment.professionalName,
+        ),
+      ),
+    );
+  }
+
+  void _handleReschedule(BuildContext context, AppState appState, Appointment appointment) {
+    Map<String, dynamic>? matchedOrg;
+    for (final org in _organizations) {
+      if (org["name"] == appointment.organizationName) {
+        matchedOrg = org;
+        break;
+      }
+    }
+    matchedOrg ??= _organizations.first;
+
+    final services = matchedOrg["services"] as List;
+    Map<String, dynamic>? matchedService;
+    for (final service in services) {
+      if (service is Map<String, dynamic> && service["name"] == appointment.serviceName) {
+        matchedService = service;
+        break;
+      }
+    }
+    matchedService ??= services.first as Map<String, dynamic>;
+
+    appState.clearBookingWizard();
+    appState.selectedOrg = matchedOrg;
+    appState.selectedCategory = matchedOrg["category"];
+    appState.selectedService = appointment.serviceName;
+    appState.selectedServicePrice = (matchedService["price"] as num).toDouble();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BookingWizardScreen(
+          initialStep: 1,
+          preselectedProfessionalName: appointment.professionalName,
+          reschedulingAppointmentId: appointment.id,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -190,6 +367,23 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                                 ),
                               ],
                             ),
+                            if (appointment.tokenNumber != null) ...[
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  const Icon(Icons.confirmation_num_outlined, size: 16, color: AppTheme.primaryColor),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "Token Number: ${appointment.tokenNumber}",
+                                    style: const TextStyle(
+                                      fontSize: 14, 
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                             
                             // Divider & Action buttons (only for upcoming/active appointments)
                             if (!isCancelled) ...[
@@ -199,11 +393,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                                   // Reschedule Button
                                   Expanded(
                                     child: ElevatedButton(
-                                      onPressed: () {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text("Reschedule option selected")),
-                                        );
-                                      },
+                                      onPressed: () => _handleReschedule(context, appState, appointment),
                                       style: ElevatedButton.styleFrom(
                                         elevation: 0,
                                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -233,6 +423,28 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                                         ),
                                       ),
                                       child: const Text("Cancel", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ] else ...[
+                              const Divider(color: Color(0xFFF1EBF1), height: 32),
+                              Row(
+                                children: [
+                                  // Rebook Button
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: () => _handleRebook(context, appState, appointment),
+                                      style: ElevatedButton.styleFrom(
+                                        elevation: 0,
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        backgroundColor: AppTheme.primaryColor,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      child: const Text("Rebook", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                     ),
                                   ),
                                 ],
