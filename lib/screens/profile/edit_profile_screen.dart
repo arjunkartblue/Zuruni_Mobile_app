@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../theme/theme.dart';
 import '../../state/app_state.dart';
 
@@ -17,6 +16,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
+  late TextEditingController _emailController;
   late TextEditingController _idNumberController;
   
   String _selectedCountry = "India";
@@ -48,6 +48,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final appState = Provider.of<AppState>(context, listen: false);
     _nameController = TextEditingController(text: appState.userName);
     _phoneController = TextEditingController(text: appState.userPhone);
+    _emailController = TextEditingController(text: appState.userEmail);
     _idNumberController = TextEditingController();
     _selectedCountry = appState.userCountry.isNotEmpty ? appState.userCountry : "India";
   }
@@ -56,6 +57,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
     _idNumberController.dispose();
     super.dispose();
   }
@@ -99,7 +101,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       appState.updateProfile(
         name: _nameController.text.trim(),
         phone: _phoneController.text.trim(),
-        email: appState.userEmail,
+        email: _emailController.text.trim(),
         country: _selectedCountry,
       );
 
@@ -130,15 +132,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        backgroundColor: AppTheme.surfaceColor,
+        elevation: 0.5,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.onSurfaceColor),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.onSurfaceColor, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: SvgPicture.asset(
-          'assets/images/zuruni_logo.svg',
-          height: 24,
+        title: Text(
+          "Edit Profile",
+          style: GoogleFonts.hankenGrotesk(
+            fontWeight: FontWeight.bold,
+            color: AppTheme.onSurfaceColor,
+            fontSize: 20,
+          ),
         ),
         centerTitle: true,
         actions: [
@@ -158,175 +165,233 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Profile Photo Section
-                Center(
+                // CARD 1: Profile Information
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                    border: Border.all(color: AppTheme.outlineVariantColor),
+                    boxShadow: AppTheme.ambientShadow,
+                  ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Stack(
-                        children: [
-                          const CircleAvatar(
-                            radius: 54,
-                            backgroundColor: AppTheme.surfaceContainerColor,
-                            backgroundImage: NetworkImage(
-                              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240',
+                      // Profile Photo Section
+                      Center(
+                        child: Column(
+                          children: [
+                            Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: const Image(
+                                    image: NetworkImage(
+                                      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240',
+                                    ),
+                                    width: 108,
+                                    height: 108,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text("Photo picker simulation")),
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: const BoxDecoration(
+                                        color: AppTheme.primaryColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.camera_alt,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: AppTheme.primaryColor,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt,
-                                color: Colors.white,
-                                size: 18,
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("Photo picker simulation")),
+                                );
+                              },
+                              child: const Text(
+                                "Change Photo",
+                                style: TextStyle(
+                                  color: AppTheme.primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Photo picker simulation")),
-                          );
-                        },
-                        child: const Text(
-                          "Change Photo",
-                          style: TextStyle(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
+                          ],
                         ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Divider(color: AppTheme.outlineVariantColor, height: 1),
+                      const SizedBox(height: 20),
+
+                      // Form Fields
+                      _buildFieldLabel("Full Name"),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _nameController,
+                        validator: (value) => value == null || value.trim().isEmpty ? "Name cannot be empty" : null,
+                        decoration: const InputDecoration(
+                          hintText: "Enter your full name",
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      _buildFieldLabel("Phone Number"),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _phoneController,
+                        validator: (value) => value == null || value.trim().isEmpty ? "Phone number cannot be empty" : null,
+                        decoration: const InputDecoration(
+                          hintText: "Enter your phone number",
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      _buildFieldLabel("Email Address"),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _emailController,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) return "Email cannot be empty";
+                          if (!value.contains("@")) return "Enter a valid email";
+                          return null;
+                        },
+                        decoration: const InputDecoration(
+                          hintText: "Enter your email address",
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: 16),
+
+                      _buildFieldLabel("Country / Region"),
+                      const SizedBox(height: 6),
+                      DropdownButtonFormField<String>(
+                        value: _selectedCountry,
+                        items: _countries.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedCountry = val!;
+                          });
+                        },
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-
-                // Form Fields
-                _buildFieldLabel("Full Name"),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _nameController,
-                  validator: (value) => value == null || value.trim().isEmpty ? "Name cannot be empty" : null,
-                  decoration: const InputDecoration(
-                    hintText: "Enter your full name",
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                _buildFieldLabel("Phone Number"),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _phoneController,
-                  validator: (value) => value == null || value.trim().isEmpty ? "Phone number cannot be empty" : null,
-                  decoration: const InputDecoration(
-                    hintText: "Enter your phone number",
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                _buildFieldLabel("Country / Region"),
-                const SizedBox(height: 6),
-                DropdownButtonFormField<String>(
-                  value: _selectedCountry,
-                  items: _countries.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      _selectedCountry = val!;
-                    });
-                  },
-                ),
-                const SizedBox(height: 28),
-
-                const Divider(color: AppTheme.outlineVariantColor),
-                const SizedBox(height: 24),
-
-                // Identity Verification Section
-                Text(
-                  "Identity Verification",
-                  style: GoogleFonts.hankenGrotesk(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.onSurfaceColor,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "Upload a valid government ID for automated gate-entry clearance.",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppTheme.onSurfaceVariant.withOpacity(0.8),
-                    height: 1.3,
-                  ),
-                ),
+                
                 const SizedBox(height: 20),
 
-                _buildFieldLabel("Select ID Document Type"),
-                const SizedBox(height: 6),
-                DropdownButtonFormField<String>(
-                  value: _selectedDocType,
-                  items: _docTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      _selectedDocType = val!;
-                      // Reset upload file when document type changes to avoid confusion
-                      _uploadedFileName = null;
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                _buildFieldLabel("Document ID Number"),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _idNumberController,
-                  decoration: const InputDecoration(
-                    hintText: "Enter ID number",
+                // CARD 2: Identity Verification
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                    border: Border.all(color: AppTheme.outlineVariantColor),
+                    boxShadow: AppTheme.ambientShadow,
                   ),
-                ),
-                const SizedBox(height: 16),
-
-                // Upload Box
-                GestureDetector(
-                  onTap: !_isUploading ? _simulateUpload : null,
-                  child: CustomPaint(
-                    painter: DashedBorderPainter(
-                      color: _uploadedFileName != null ? AppTheme.successColor : AppTheme.outlineVariantColor,
-                      strokeWidth: 1.5,
-                      borderRadius: 12.0,
-                    ),
-                    child: Container(
-                      width: double.infinity,
-                      height: 110,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Identity Verification Documents",
+                        style: GoogleFonts.hankenGrotesk(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.onSurfaceColor,
+                        ),
                       ),
-                      child: _buildUploadBoxContent(),
-                    ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Upload a valid government ID for automated gate-entry clearance.",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.onSurfaceVariant.withOpacity(0.8),
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      _buildFieldLabel("Select ID Document Type"),
+                      const SizedBox(height: 6),
+                      DropdownButtonFormField<String>(
+                        value: _selectedDocType,
+                        items: _docTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedDocType = val!;
+                            // Reset upload file when document type changes to avoid confusion
+                            _uploadedFileName = null;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      _buildFieldLabel("Document ID Number"),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _idNumberController,
+                        decoration: const InputDecoration(
+                          hintText: "Enter ID number",
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Upload Box
+                      GestureDetector(
+                        onTap: !_isUploading ? _simulateUpload : null,
+                        child: CustomPaint(
+                          painter: DashedBorderPainter(
+                            color: _uploadedFileName != null ? AppTheme.successColor : AppTheme.outlineVariantColor,
+                            strokeWidth: 1.5,
+                            borderRadius: 12.0,
+                          ),
+                          child: Container(
+                            width: double.infinity,
+                            height: 110,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: _buildUploadBoxContent(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Added Documents List
+                      if (appState.documents.isNotEmpty) ...[
+                        ...appState.documents.map((doc) => _buildDocumentTile(doc)),
+                      ],
+                    ],
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // Added Documents List
-                if (appState.documents.isNotEmpty) ...[
-                  ...appState.documents.map((doc) => _buildDocumentTile(doc)),
-                  const SizedBox(height: 24),
-                ],
 
                 // Save Profile Changes Button
                 SizedBox(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/theme.dart';
@@ -21,9 +22,80 @@ class _ExploreScreenState extends State<ExploreScreen> {
   String? _selectedDistrict = "All";
   final TextEditingController _searchController = TextEditingController();
 
+  // Chatbot State
+  bool _isChatOpen = false;
+  bool _isTyping = false;
+  final List<Map<String, dynamic>> _chatMessages = [];
+  final TextEditingController _chatInputController = TextEditingController();
+  final ScrollController _chatScrollController = ScrollController();
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_chatScrollController.hasClients) {
+        _chatScrollController.animateTo(
+          _chatScrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  void _handleSendChatMessage() {
+    final text = _chatInputController.text.trim();
+    if (text.isEmpty) return;
+
+    _chatInputController.clear();
+    setState(() {
+      _chatMessages.add({
+        "text": text,
+        "isMe": true,
+        "time": TimeOfDay.now().format(context),
+      });
+      _isTyping = true;
+    });
+    _scrollToBottom();
+
+    // Contextual bot reply simulation
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (!mounted) return;
+      
+      String reply = "";
+      final query = text.toLowerCase();
+      
+      if (query.contains("book") || query.contains("appointment") || query.contains("schedule")) {
+        reply = "To book a visit, tap on a category tab (e.g. Healthcare, Legal) on this screen, select an organization, choose your service and doctor, and complete the Booking Wizard! Your token will activate automatically.";
+      } else if (query.contains("cancel")) {
+        reply = "You can cancel any upcoming appointment by heading to the 'Bookings' tab, opening the active booking details card, and selecting 'Cancel Visit'. Note: Checked-in or past visits cannot be cancelled.";
+      } else if (query.contains("reschedule")) {
+        reply = "To reschedule, open your appointment details inside the 'Bookings' tab and tap 'Reschedule'. You'll be prompted to select a new date and time slot.";
+      } else if (query.contains("prescription") || query.contains("pdf") || query.contains("rx")) {
+        reply = "Once your session is completed, your professional will upload the prescription. You can view or download it by going to 'My Prescriptions' in the drawer menu, or under your completed visit's summary card.";
+      } else if (query.contains("hi") || query.contains("hello") || query.contains("hey")) {
+        reply = "Hello! I am your Zuruni Assistant. How can I help you find services, manage bookings, or access your entry passes today?";
+      } else if (query.contains("help") || query.contains("how to")) {
+        reply = "I can guide you on: \n• How to book an appointment\n• Rescheduling or cancelling visits\n• Finding clinical prescriptions\n• Accessing your digital QR passes\nWhat would you like assistance with?";
+      } else {
+        reply = "Thank you for asking! I can help you with scheduling, gates passes, and prescription summaries. Try asking: 'How do I book?' or 'How can I view prescriptions?'";
+      }
+
+      setState(() {
+        _isTyping = false;
+        _chatMessages.add({
+          "text": reply,
+          "isMe": false,
+          "time": TimeOfDay.now().format(context),
+        });
+      });
+      _scrollToBottom();
+    });
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
+    _chatInputController.dispose();
+    _chatScrollController.dispose();
     super.dispose();
   }
 
@@ -178,7 +250,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   void _showLocationFilterSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.backgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(AppTheme.radius2Xl),
@@ -475,9 +547,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
         apt.tokenNumber != null && _isToday(apt.date)
     );
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Upcoming Appointments (If logged in) - now at the top
@@ -1069,6 +1143,330 @@ class _ExploreScreenState extends State<ExploreScreen> {
           const SizedBox(height: 24),
         ],
       ),
-    );
-  }
+    ),
+    
+    // Backdrop blur overlay when chatbot is open
+    if (_isChatOpen)
+      Positioned.fill(
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              _isChatOpen = false;
+            });
+          },
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
+            child: Container(
+              color: Colors.black.withOpacity(0.15),
+            ),
+          ),
+        ),
+      ),
+    
+    // Chat Overlay Card
+    if (_isChatOpen)
+      Positioned.fill(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Material(
+              color: Colors.transparent,
+              elevation: 8,
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.85,
+                constraints: const BoxConstraints(
+                  maxWidth: 340,
+                  maxHeight: 450,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.outlineVariantColor),
+                ),
+                child: Column(
+                  children: [
+                    // Header
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: const BoxDecoration(
+                        color: AppTheme.primaryColor,
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.smart_toy_outlined,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Zuruni Assistant",
+                                  style: GoogleFonts.hankenGrotesk(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: const BoxDecoration(
+                                        color: AppTheme.successColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      "Online",
+                                      style: GoogleFonts.inter(
+                                        color: Colors.white.withOpacity(0.7),
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                            onPressed: () {
+                              setState(() {
+                                _isChatOpen = false;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Chat Messages Body
+                    Expanded(
+                      child: Container(
+                        color: AppTheme.surfaceContainerLow.withOpacity(0.3),
+                        child: ListView.builder(
+                          controller: _chatScrollController,
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _chatMessages.length + (_isTyping ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (index == _chatMessages.length) {
+                              // Typing indicator
+                              return Align(
+                                alignment: Alignment.centerLeft,
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 12, right: 40),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.surfaceContainerColor,
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(16),
+                                      topRight: Radius.circular(16),
+                                      bottomRight: Radius.circular(16),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(
+                                        width: 12,
+                                        height: 12,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(
+                                            AppTheme.primaryColor.withOpacity(0.6),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        "Assistant is typing...",
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          fontStyle: FontStyle.italic,
+                                          color: AppTheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+
+                            final msg = _chatMessages[index];
+                            final isMe = msg["isMe"] == true;
+
+                            return Align(
+                              alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                              child: Column(
+                                crossAxisAlignment:
+                                    isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    margin: EdgeInsets.only(
+                                      bottom: 4,
+                                      left: isMe ? 40 : 0,
+                                      right: isMe ? 0 : 40,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isMe
+                                          ? AppTheme.primaryColor
+                                          : AppTheme.surfaceContainerColor,
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: const Radius.circular(16),
+                                        topRight: const Radius.circular(16),
+                                        bottomLeft: Radius.circular(isMe ? 16 : 0),
+                                        bottomRight: Radius.circular(isMe ? 0 : 16),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      msg["text"] ?? "",
+                                      style: GoogleFonts.inter(
+                                        fontSize: 13.5,
+                                        color: isMe ? Colors.white : AppTheme.onSurfaceColor,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 12, left: 4, right: 4),
+                                    child: Text(
+                                      msg["time"] ?? "",
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10,
+                                        color: AppTheme.outlineColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+                    // Input / Footer
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border(
+                          top: BorderSide(
+                            color: AppTheme.outlineVariantColor.withOpacity(0.5),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: AppTheme.surfaceContainerLow,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: TextField(
+                                controller: _chatInputController,
+                                decoration: const InputDecoration(
+                                  hintText: "Type a message...",
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 10),
+                                  hintStyle: TextStyle(
+                                    color: AppTheme.outlineColor,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                style: const TextStyle(fontSize: 14),
+                                onSubmitted: (_) => _handleSendChatMessage(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: _handleSendChatMessage,
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: const BoxDecoration(
+                                color: AppTheme.primaryColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.send,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+
+    // Floating Chat Trigger Button
+    Positioned(
+      bottom: 16,
+      right: 16,
+      child: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            _isChatOpen = !_isChatOpen;
+            if (_isChatOpen && _chatMessages.isEmpty) {
+              final firstName = appState.isLoggedIn && appState.userName.isNotEmpty
+                  ? appState.userName.split(' ')[0]
+                  : "there";
+              _chatMessages.add({
+                "text": "Hello $firstName! How can I help you with your bookings today?",
+                "isMe": false,
+                "time": TimeOfDay.now().format(context),
+              });
+            }
+          });
+          if (_isChatOpen) {
+            _scrollToBottom();
+          }
+        },
+        backgroundColor: AppTheme.primaryColor,
+        shape: const CircleBorder(),
+        child: Icon(
+          _isChatOpen ? Icons.close : Icons.smart_toy,
+          color: Colors.white,
+          size: 28,
+        ),
+      ),
+    ),
+  ],
+);
+}
 }

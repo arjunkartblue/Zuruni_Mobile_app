@@ -236,126 +236,307 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   }
 
   Widget _buildDrawer(BuildContext context, AppState appState) {
+    final isLoggedIn = appState.isLoggedIn;
+    final isAccountVerified = appState.verificationStatus == VerificationStatus.verified;
+
     return Drawer(
       backgroundColor: AppTheme.backgroundColor,
-      child: ListView(
-        padding: EdgeInsets.zero,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
+      ),
+      child: Column(
         children: [
-          UserAccountsDrawerHeader(
+          // Custom Header
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 24,
+              bottom: 24,
+              left: 24,
+              right: 24,
+            ),
             decoration: const BoxDecoration(
-              color: AppTheme.primaryColor,
-            ),
-            accountName: Text(
-              appState.isLoggedIn ? appState.userName : "Guest Visitor",
-              style: GoogleFonts.hankenGrotesk(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.primaryColor,
+                  Color(0xFF581C87), // Rich purple
+                ],
+              ),
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(32),
               ),
             ),
-            accountEmail: Text(
-              appState.isLoggedIn ? appState.userEmail : "Login to access full features",
-              style: GoogleFonts.inter(
-                fontSize: 14,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Profile Avatar (Rounded square)
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: isLoggedIn
+                            ? Image.network(
+                                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240',
+                                width: 56,
+                                height: 56,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                width: 56,
+                                height: 56,
+                                color: Colors.white.withOpacity(0.2),
+                                child: const Icon(
+                                  Icons.person_outline,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                      ),
+                    ),
+                    // Verification / Status Pill
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isLoggedIn
+                            ? (isAccountVerified ? const Color(0xFFD1FAE5) : const Color(0xFFFEF3C7))
+                            : Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        isLoggedIn ? (isAccountVerified ? "VERIFIED" : "PENDING") : "GUEST",
+                        style: TextStyle(
+                          color: isLoggedIn
+                              ? (isAccountVerified ? const Color(0xFF059669) : const Color(0xFFD97706))
+                              : Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  isLoggedIn ? appState.userName : "Guest Visitor",
+                  style: GoogleFonts.hankenGrotesk(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  isLoggedIn ? appState.userEmail : "Login to access full features",
+                  style: GoogleFonts.inter(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 13,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: AppTheme.surfaceContainerColor,
-              backgroundImage: appState.isLoggedIn
-                  ? const NetworkImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240')
-                  : null,
-              child: !appState.isLoggedIn
-                  ? const Icon(Icons.person_outline, size: 36, color: AppTheme.primaryColor)
-                  : null,
+          ),
+          
+          // Drawer items
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              children: [
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.search_outlined,
+                  activeIcon: Icons.search,
+                  title: 'Explore',
+                  isSelected: _currentIndex == 0,
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _currentIndex = 0;
+                    });
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.calendar_today_outlined,
+                  activeIcon: Icons.calendar_today,
+                  title: 'My Bookings',
+                  isSelected: _currentIndex == 1,
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _currentIndex = 1;
+                    });
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.description_outlined,
+                  activeIcon: Icons.description,
+                  title: 'My Prescriptions',
+                  isSelected: false,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const MyPrescriptionsScreen()),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.person_outline,
+                  activeIcon: Icons.person,
+                  title: 'Profile',
+                  isSelected: _currentIndex == 2,
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _currentIndex = 2;
+                    });
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                  child: Divider(color: AppTheme.outlineVariantColor.withOpacity(0.3)),
+                ),
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.help_outline,
+                  activeIcon: Icons.help,
+                  title: 'Help & FAQ',
+                  isSelected: false,
+                  onTap: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Help & FAQ center loaded")),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.shield_outlined,
+                  activeIcon: Icons.shield,
+                  title: 'Privacy & Terms',
+                  isSelected: false,
+                  onTap: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Privacy Policy & Terms loaded")),
+                    );
+                  },
+                ),
+              ],
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.search, color: AppTheme.primaryColor),
-            title: const Text('Explore '),
-            onTap: () {
-              Navigator.pop(context);
-              setState(() {
-                _currentIndex = 0;
-              });
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.calendar_today, color: AppTheme.primaryColor),
-            title: const Text('My Bookings'),
-            onTap: () {
-              Navigator.pop(context);
-              setState(() {
-                _currentIndex = 1;
-              });
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.description_outlined, color: AppTheme.primaryColor),
-            title: const Text('My Prescriptions'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MyPrescriptionsScreen()),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.person_outline, color: AppTheme.primaryColor),
-            title: const Text('Profile'),
-            onTap: () {
-              Navigator.pop(context);
-              setState(() {
-                _currentIndex = 2;
-              });
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.help_outline, color: AppTheme.primaryColor),
-            title: const Text('Help & FAQ'),
-            onTap: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Help & FAQ center loaded")),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.shield_outlined, color: AppTheme.primaryColor),
-            title: const Text('Privacy & Terms'),
-            onTap: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Privacy Policy & Terms loaded")),
-              );
-            },
-          ),
-          const Divider(),
-          if (appState.isLoggedIn)
-            ListTile(
-              leading: const Icon(Icons.logout, color: AppTheme.errorColor),
-              title: const Text('Log Out', style: TextStyle(color: AppTheme.errorColor)),
-              onTap: () {
-                Navigator.pop(context);
-                appState.logout();
-                setState(() {
-                  _currentIndex = 0;
-                });
-              },
-            )
-          else
-            ListTile(
-              leading: const Icon(Icons.login, color: AppTheme.primaryColor),
-              title: const Text('Log In'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                );
-              },
+          
+          // Drawer Footer
+          Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).padding.bottom + 20,
+              left: 20,
+              right: 20,
             ),
+            child: SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: isLoggedIn
+                  ? OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        appState.logout();
+                        setState(() {
+                          _currentIndex = 0;
+                        });
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.errorColor,
+                        side: const BorderSide(color: AppTheme.errorColor),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.logout, size: 18),
+                      label: const Text(
+                        'Log Out',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    )
+                  : ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.login, size: 18),
+                      label: const Text(
+                        'Log In',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required BuildContext context,
+    required IconData icon,
+    required IconData activeIcon,
+    required String title,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isSelected ? AppTheme.surfaceContainerColor : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: Icon(
+          isSelected ? activeIcon : icon,
+          color: isSelected ? AppTheme.primaryColor : AppTheme.onSurfaceVariant,
+        ),
+        title: Text(
+          title,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+            color: isSelected ? AppTheme.primaryColor : AppTheme.onSurfaceColor,
+          ),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        onTap: onTap,
       ),
     );
   }

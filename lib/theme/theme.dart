@@ -63,6 +63,7 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
+      scaffoldBackgroundColor: surfaceColor,
       colorScheme: ColorScheme.light(
         primary: primaryColor,
         secondary: secondaryColor,

@@ -661,7 +661,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.backgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radius2Xl)),
       ),
