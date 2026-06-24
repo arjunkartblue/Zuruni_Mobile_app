@@ -6,6 +6,7 @@ import '../theme/theme.dart';
 import '../state/app_state.dart';
 import 'explore_screen.dart';
 import 'my_appointments_screen.dart';
+import 'my_prescriptions_screen.dart';
 import 'profile_screen.dart';
 import 'profile/edit_profile_screen.dart';
 import 'auth/login_screen.dart';
@@ -285,6 +286,17 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
               setState(() {
                 _currentIndex = 1;
               });
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.description_outlined, color: AppTheme.primaryColor),
+            title: const Text('My Prescriptions'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MyPrescriptionsScreen()),
+              );
             },
           ),
           ListTile(

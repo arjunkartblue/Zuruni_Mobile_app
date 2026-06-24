@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../theme/theme.dart';
-import '../state/app_state.dart';
+import '../../theme/theme.dart';
+import '../../state/app_state.dart';
+import '../../utils/time_utils.dart';
+import '../../widgets/empty_state_widget.dart';
 import 'visitor_access/appointment_overview_screen.dart';
+import 'visitor_access/past_appointment_summary_screen.dart';
 import 'booking_flow/booking_wizard_screen.dart';
 
 class MyAppointmentsScreen extends StatefulWidget {
@@ -213,10 +216,9 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final theme = Theme.of(context);
 
     // Filter appointments
-    final list = _filter == "Upcoming" ? appState.appointments : appState.cancelledAppointments;
+    final list = _filter == "Upcoming" ? appState.appointments : appState.pastAndCancelledAppointments;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,7 +256,13 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
         // Appointments List
         Expanded(
           child: list.isEmpty
-              ? _buildEmptyState(theme)
+              ? EmptyStateWidget(
+                  icon: Icons.calendar_today_outlined,
+                  title: "No Appointments Found",
+                  subtitle: "You don't have any bookings matching this filter. Schedule visits via the Explore tab.",
+                  iconColor: AppTheme.outlineColor,
+                  iconBgColor: AppTheme.surfaceContainerColor,
+                )
               : ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   physics: const BouncingScrollPhysics(),
@@ -264,10 +272,18 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                     final isVerified = appointment.status == "Verified";
                     final isPending = appointment.status == "Pending";
                     final isCancelled = appointment.status == "Cancelled";
+                    final isCompleted = appointment.status == "Completed";
 
                     return GestureDetector(
                       onTap: () {
-                        if (!isCancelled) {
+                        if (isCompleted || isCancelled) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PastAppointmentSummaryScreen(appointment: appointment),
+                            ),
+                          );
+                        } else {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -322,18 +338,38 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                                       // Row with status badge and meeting type
                                       Row(
                                         children: [
-                                          // Status badge pill
+                                           // Status badge pill
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFFFAF5FF), // light purple
+                                              color: isCompleted
+                                                  ? const Color(0xFFF0FDF4)   // green tint
+                                                  : isCancelled
+                                                      ? const Color(0xFFFEF2F2) // red tint
+                                                      : const Color(0xFFFAF5FF), // purple tint
                                               borderRadius: BorderRadius.circular(6),
-                                              border: Border.all(color: const Color(0xFFF3E8FF)),
+                                              border: Border.all(
+                                                color: isCompleted
+                                                    ? const Color(0xFFBBF7D0)  // green border
+                                                    : isCancelled
+                                                        ? const Color(0xFFFECACA) // red border
+                                                        : const Color(0xFFF3E8FF), // purple border
+                                              ),
                                             ),
                                             child: Text(
-                                              isVerified ? "CONFIRMED" : (isPending ? "PENDING" : "CANCELLED"),
-                                              style: const TextStyle(
-                                                color: Color(0xFF6B21A8), // dark purple
+                                              isCompleted
+                                                  ? "COMPLETED"
+                                                  : isVerified
+                                                      ? "CONFIRMED"
+                                                      : isPending
+                                                          ? "PENDING"
+                                                          : "CANCELLED",
+                                              style: TextStyle(
+                                                color: isCompleted
+                                                    ? const Color(0xFF15803D)  // green text
+                                                    : isCancelled
+                                                        ? const Color(0xFFB91C1C) // red text
+                                                        : const Color(0xFF6B21A8), // purple text
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 9,
                                                 letterSpacing: 0.5,
@@ -376,7 +412,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                                 const Icon(Icons.watch_later_outlined, size: 16, color: AppTheme.outlineColor),
                                 const SizedBox(width: 8),
                                 Text(
-                                  "${appointment.timeSlot} - ${_getEndTimeSlot(appointment.timeSlot)}",
+                                  "${appointment.timeSlot} - ${TimeUtils.getEndTimeSlot(appointment.timeSlot)}",
                                   style: const TextStyle(
                                     fontSize: 14, 
                                     fontWeight: FontWeight.w500,
@@ -403,8 +439,8 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                               ),
                             ],
                             
-                            // Divider & Action buttons (only for upcoming/active appointments)
-                            if (!isCancelled) ...[
+                            // Divider & Action buttons
+                            if (!isCancelled && !isCompleted) ...[
                               const Divider(color: Color(0xFFF1EBF1), height: 32),
                               Row(
                                 children: [
@@ -612,78 +648,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
     );
   }
 
-  String _getEndTimeSlot(String start) {
-    try {
-      final parts = start.split(" ");
-      final timeParts = parts[0].split(":");
-      int hour = int.parse(timeParts[0]);
-      int minute = int.parse(timeParts[1]);
-      
-      // Assume a 30 minutes duration for appointments
-      minute += 30;
-      if (minute >= 60) {
-        minute -= 60;
-        hour += 1;
-      }
-      
-      String period = parts[1];
-      if (hour >= 12) {
-        if (hour > 12) {
-          hour -= 12;
-        }
-        // toggle period if we transition from AM/PM or hour was exactly 12
-        if (timeParts[0] != "12") {
-          period = period == "AM" ? "PM" : "AM";
-        }
-      }
-      
-      final paddedHour = hour.toString();
-      final paddedMinute = minute.toString().padLeft(2, '0');
-      return "$paddedHour:$paddedMinute $period";
-    } catch (_) {
-      return "10:00 AM";
-    }
-  }
 
-  Widget _buildEmptyState(ThemeData theme) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                color: AppTheme.surfaceContainerColor,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.calendar_today_outlined,
-                size: 64,
-                color: AppTheme.outlineColor,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              "No Appointments Found",
-              style: theme.textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              "You don't have any bookings matching this filter. Schedule visits via the Explore tab.",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppTheme.onSurfaceVariant,
-                fontSize: 14,
-                height: 1.3,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   void _showCancelBottomSheet(BuildContext context, AppState appState, String id) {
     String? selectedReason;

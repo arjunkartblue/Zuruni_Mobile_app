@@ -4,6 +4,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../theme/theme.dart';
 import '../../state/app_state.dart';
+import '../../utils/time_utils.dart';
 
 class VisitorPassScreen extends StatelessWidget {
   final Appointment appointment;
@@ -153,7 +154,7 @@ class VisitorPassScreen extends StatelessWidget {
                 children: [
                   _buildDetailRow("Host", appointment.professionalName),
                   _buildDetailRow("Date", AppTheme.formatDate(appointment.date)),
-                  _buildDetailRow("Time", "${appointment.timeSlot} - ${_getEndTimeSlot(appointment.timeSlot)}"),
+                  _buildDetailRow("Time", "${appointment.timeSlot} - ${TimeUtils.getEndTimeSlot(appointment.timeSlot)}"),
                   _buildDetailRow("Location", "${appointment.organizationName}, Suite 402", isPurpleAction: true),
                 ],
               ),
@@ -382,34 +383,5 @@ class VisitorPassScreen extends StatelessWidget {
     );
   }
 
-  String _getEndTimeSlot(String start) {
-    try {
-      final parts = start.split(" ");
-      final timeParts = parts[0].split(":");
-      int hour = int.parse(timeParts[0]);
-      int minute = int.parse(timeParts[1]);
-      
-      minute += 30;
-      if (minute >= 60) {
-        minute -= 60;
-        hour += 1;
-      }
-      
-      String period = parts[1];
-      if (hour >= 12) {
-        if (hour > 12) {
-          hour -= 12;
-        }
-        if (timeParts[0] != "12") {
-          period = period == "AM" ? "PM" : "AM";
-        }
-      }
-      
-      final paddedHour = hour.toString();
-      final paddedMinute = minute.toString().padLeft(2, '0');
-      return "$paddedHour:$paddedMinute $period";
-    } catch (_) {
-      return "10:00 AM";
-    }
-  }
+
 }

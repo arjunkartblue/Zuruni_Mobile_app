@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../theme/theme.dart';
 import '../../state/app_state.dart';
+import '../../utils/time_utils.dart';
+import '../../widgets/appointment_status_header.dart';
 import 'visitor_pass_screen.dart';
 
 class AppointmentOverviewScreen extends StatefulWidget {
@@ -17,36 +19,7 @@ class AppointmentOverviewScreen extends StatefulWidget {
 class _AppointmentOverviewScreenState extends State<AppointmentOverviewScreen> {
   int _activeTimelineIndex = 0;
 
-  String _getEndTimeSlot(String start) {
-    try {
-      final parts = start.split(" ");
-      final timeParts = parts[0].split(":");
-      int hour = int.parse(timeParts[0]);
-      int minute = int.parse(timeParts[1]);
-      
-      minute += 30;
-      if (minute >= 60) {
-        minute -= 60;
-        hour += 1;
-      }
-      
-      String period = parts[1];
-      if (hour >= 12) {
-        if (hour > 12) {
-          hour -= 12;
-        }
-        if (timeParts[0] != "12") {
-          period = period == "AM" ? "PM" : "AM";
-        }
-      }
-      
-      final paddedHour = hour.toString();
-      final paddedMinute = minute.toString().padLeft(2, '0');
-      return "$paddedHour:$paddedMinute $period";
-    } catch (_) {
-      return "10:00 AM";
-    }
-  }
+
 
   String _getOrgAddress(String orgName) {
     if (orgName.contains("Vantage")) return "Building A, Floor 4, Suite 402";
@@ -147,55 +120,12 @@ class _AppointmentOverviewScreenState extends State<AppointmentOverviewScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Status Header Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                  border: Border.all(color: AppTheme.outlineVariantColor),
-                  boxShadow: AppTheme.ambientShadow,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: statusColor,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            statusText,
-                            style: GoogleFonts.jetBrainsMono(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: statusColor,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            isVerified
-                                ? "Your digital entry pass is active"
-                                : (isCancelled ? "This visit was cancelled" : "Identity verification in progress"),
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              color: AppTheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+              AppointmentStatusHeader(
+                statusColor: statusColor,
+                statusText: statusText,
+                statusMessage: isVerified
+                    ? "Your digital entry pass is active"
+                    : (isCancelled ? "This visit was cancelled" : "Identity verification in progress"),
               ),
               const SizedBox(height: 20),
 
@@ -255,7 +185,7 @@ class _AppointmentOverviewScreenState extends State<AppointmentOverviewScreen> {
                       icon: Icons.calendar_today_outlined,
                       label: "Date & Time",
                       value: AppTheme.formatDate(widget.appointment.date),
-                      subvalue: "${widget.appointment.timeSlot} — ${_getEndTimeSlot(widget.appointment.timeSlot)}",
+                      subvalue: "${widget.appointment.timeSlot} — ${TimeUtils.getEndTimeSlot(widget.appointment.timeSlot)}",
                     ),
                     const SizedBox(height: 16),
 

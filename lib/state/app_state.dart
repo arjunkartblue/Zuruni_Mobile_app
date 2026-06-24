@@ -10,7 +10,7 @@ class Appointment {
   final String serviceName;
   final DateTime date;
   final String timeSlot;
-  String status; // "Verified", "Pending", "Action Required", "Cancelled"
+  String status; // "Verified", "Pending", "Action Required", "Cancelled", "Completed"
   final String? tokenNumber; // Added for Token System
   
   // Visitor access & facility details
@@ -19,6 +19,10 @@ class Appointment {
   final String? parkingBay;
   final List<String> timelineSteps;
   final int activeTimelineIndex;
+  
+  // Prescription details
+  final String? prescriptionPdfUrl;
+  final String? prescriptionName;
   
   Appointment({
     required this.id,
@@ -35,9 +39,11 @@ class Appointment {
     this.parkingBay,
     required this.timelineSteps,
     this.activeTimelineIndex = 0,
+    this.prescriptionPdfUrl,
+    this.prescriptionName,
   });
 
-  Appointment copyWith({String? status, String? tokenNumber}) {
+  Appointment copyWith({String? status, String? tokenNumber, String? prescriptionPdfUrl, String? prescriptionName}) {
     return Appointment(
       id: id,
       professionalName: professionalName,
@@ -53,6 +59,8 @@ class Appointment {
       parkingBay: parkingBay,
       timelineSteps: timelineSteps,
       activeTimelineIndex: activeTimelineIndex,
+      prescriptionPdfUrl: prescriptionPdfUrl ?? this.prescriptionPdfUrl,
+      prescriptionName: prescriptionName ?? this.prescriptionName,
     );
   }
 }
@@ -142,6 +150,40 @@ class AppState extends ChangeNotifier {
         "Checkout"
       ],
       activeTimelineIndex: 0,
+    ),
+    Appointment(
+      id: "APT-77110",
+      professionalName: "Dr. Aris Thorne",
+      organizationName: "Vantage Medical Group",
+      category: "Healthcare",
+      serviceName: "General Consultation",
+      date: DateTime.now().subtract(const Duration(days: 5)),
+      timeSlot: "10:00 AM",
+      status: "Completed",
+      tokenNumber: null,
+      gateAccessCode: null,
+      doorAccessCode: null,
+      parkingBay: null,
+      timelineSteps: ["Checkout"],
+      activeTimelineIndex: 0,
+      prescriptionPdfUrl: "prescription_vantage_77110.pdf",
+      prescriptionName: "Rx_DrThorne_June19.pdf",
+    ),
+    Appointment(
+      id: "APT-77120",
+      professionalName: "Elena Rostova",
+      organizationName: "The Aesthetic Loft",
+      category: "Beauty",
+      serviceName: "Consultation & Skincare",
+      date: DateTime.now().subtract(const Duration(days: 10)),
+      timeSlot: "11:30 AM",
+      status: "Completed",
+      tokenNumber: null,
+      gateAccessCode: null,
+      doorAccessCode: null,
+      parkingBay: null,
+      timelineSteps: ["Checkout"],
+      activeTimelineIndex: 0,
     )
   ];
 
@@ -200,7 +242,11 @@ class AppState extends ChangeNotifier {
   }
 
   List<Appointment> get appointments {
-    final list = _appointments.where((apt) => apt.status != "Cancelled").toList();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final list = _appointments
+        .where((apt) => apt.status != "Cancelled" && apt.status != "Completed" && (apt.date.isAfter(today) || apt.date.year == today.year && apt.date.month == today.month && apt.date.day == today.day))
+        .toList();
     list.sort((a, b) {
       final aDateTime = _combineDateAndTime(a.date, a.timeSlot);
       final bDateTime = _combineDateAndTime(b.date, b.timeSlot);
@@ -215,6 +261,28 @@ class AppState extends ChangeNotifier {
       final aDateTime = _combineDateAndTime(a.date, a.timeSlot);
       final bDateTime = _combineDateAndTime(b.date, b.timeSlot);
       return aDateTime.compareTo(bDateTime);
+    });
+    return list;
+  }
+
+  List<Appointment> get pastAndCancelledAppointments {
+    final list = _appointments
+        .where((apt) => apt.status == "Cancelled" || apt.status == "Completed")
+        .toList();
+    list.sort((a, b) {
+      final aDateTime = _combineDateAndTime(a.date, a.timeSlot);
+      final bDateTime = _combineDateAndTime(b.date, b.timeSlot);
+      return bDateTime.compareTo(aDateTime); // Most recent first
+    });
+    return list;
+  }
+
+  List<Appointment> get prescriptionAppointments {
+    final list = _appointments.where((apt) => apt.prescriptionPdfUrl != null).toList();
+    list.sort((a, b) {
+      final aDateTime = _combineDateAndTime(a.date, a.timeSlot);
+      final bDateTime = _combineDateAndTime(b.date, b.timeSlot);
+      return bDateTime.compareTo(aDateTime); // Most recent first
     });
     return list;
   }

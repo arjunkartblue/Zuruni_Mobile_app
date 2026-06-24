@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import '../../theme/theme.dart';
 import '../../state/app_state.dart';
+import '../../utils/time_utils.dart';
 
 class AppointmentConfirmedScreen extends StatefulWidget {
   final Appointment appointment;
@@ -47,36 +48,7 @@ class _AppointmentConfirmedScreenState extends State<AppointmentConfirmedScreen>
     return "$weekday, $month ${date.day}, ${date.year}";
   }
 
-  String _getEndTimeSlot(String start) {
-    try {
-      final parts = start.split(" ");
-      final timeParts = parts[0].split(":");
-      int hour = int.parse(timeParts[0]);
-      int minute = int.parse(timeParts[1]);
-      
-      minute += 30;
-      if (minute >= 60) {
-        minute -= 60;
-        hour += 1;
-      }
-      
-      String period = parts[1];
-      if (hour >= 12) {
-        if (hour > 12) {
-          hour -= 12;
-        }
-        if (timeParts[0] != "12") {
-          period = period == "AM" ? "PM" : "AM";
-        }
-      }
-      
-      final paddedHour = hour.toString();
-      final paddedMinute = minute.toString().padLeft(2, '0');
-      return "$paddedHour:$paddedMinute $period";
-    } catch (_) {
-      return "10:00 AM";
-    }
-  }
+
 
   String _getOrgAddress(String orgName) {
     if (orgName.contains("Vantage")) return "Building A, Floor 4, Suite 402";
@@ -254,7 +226,7 @@ class _AppointmentConfirmedScreenState extends State<AppointmentConfirmedScreen>
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                "${widget.appointment.timeSlot} — ${_getEndTimeSlot(widget.appointment.timeSlot)}",
+                                "${widget.appointment.timeSlot} — ${TimeUtils.getEndTimeSlot(widget.appointment.timeSlot)}",
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
                                   color: AppTheme.onSurfaceVariant,
