@@ -2,23 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../theme/theme.dart';
-import '../state/app_state.dart';
+import '../../theme/theme.dart';
+import '../../state/app_state.dart';
 import 'explore_screen.dart';
 import 'my_appointments_screen.dart';
 import 'my_prescriptions_screen.dart';
 import 'profile_screen.dart';
 import 'profile/edit_profile_screen.dart';
-import 'auth/login_screen.dart';
+import '../auth/login_screen.dart';
 
-class MainNavigationShell extends StatefulWidget {
-  const MainNavigationShell({Key? key}) : super(key: key);
+class UserNavigationShell extends StatefulWidget {
+  const UserNavigationShell({Key? key}) : super(key: key);
 
   @override
-  State<MainNavigationShell> createState() => _MainNavigationShellState();
+  State<UserNavigationShell> createState() => _UserNavigationShellState();
 }
 
-class _MainNavigationShellState extends State<MainNavigationShell> {
+class _UserNavigationShellState extends State<UserNavigationShell> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
@@ -119,53 +119,76 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       body: activeBody,
       drawer: _buildDrawer(context, appState),
       bottomNavigationBar: Container(
-        height: AppTheme.bottomNavHeight,
+        height: 76,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
+          color: Colors.white,
           border: Border(
             top: BorderSide(
-              color: theme.colorScheme.outlineVariant,
+              color: theme.colorScheme.outlineVariant.withOpacity(0.5),
               width: 1,
             ),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
         ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          selectedItemColor: AppTheme.primaryColor,
-          unselectedItemColor: AppTheme.onSurfaceVariant,
-          selectedLabelStyle: GoogleFonts.jetBrainsMono(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.1,
-          ),
-          unselectedLabelStyle: GoogleFonts.jetBrainsMono(
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-            letterSpacing: 0.1,
-          ),
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.search_outlined),
-              activeIcon: Icon(Icons.search),
-              label: 'Explore',
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(child: _buildNavItem(0, Icons.search_outlined, Icons.search, "Explore")),
+            Expanded(child: _buildNavItem(1, Icons.calendar_today_outlined, Icons.calendar_today, "Bookings")),
+            Expanded(child: _buildNavItem(2, Icons.person_outline, Icons.person, "Profile")),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData outlineIcon, IconData solidIcon, String label) {
+    final isSelected = _currentIndex == index;
+    final activeBgColor = const Color(0xFF290A45); // Dark Amethyst primary container
+    final activeTextColor = const Color(0xFFFAF1F9); // Light text color inside dark background
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _currentIndex = index;
+        });
+      },
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? activeBgColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isSelected ? solidIcon : outlineIcon,
+              color: isSelected ? Colors.white : AppTheme.onSurfaceVariant.withOpacity(0.6),
+              size: 22,
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today_outlined),
-              activeIcon: Icon(Icons.calendar_today),
-              label: 'Bookings',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profile',
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 9,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected ? activeTextColor : AppTheme.onSurfaceVariant.withOpacity(0.6),
+                letterSpacing: -0.1,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -412,6 +435,23 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                     });
                   },
                 ),
+                if (isLoggedIn) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                    child: Divider(color: AppTheme.outlineVariantColor.withOpacity(0.3)),
+                  ),
+                  _buildDrawerItem(
+                    context: context,
+                    icon: Icons.swap_horiz_outlined,
+                    activeIcon: Icons.swap_horiz,
+                    title: 'Switch to Staff Portal',
+                    isSelected: false,
+                    onTap: () {
+                      Navigator.pop(context);
+                      appState.setRole(UserRole.staff);
+                    },
+                  ),
+                ],
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                   child: Divider(color: AppTheme.outlineVariantColor.withOpacity(0.3)),

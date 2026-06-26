@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../theme/theme.dart';
-import '../../state/app_state.dart';
-import '../../utils/time_utils.dart';
-import '../../widgets/prescription_card.dart';
-import '../../widgets/appointment_status_header.dart';
+import '../../../theme/theme.dart';
+import '../../../state/app_state.dart';
+import '../../../utils/time_utils.dart';
+import '../../../widgets/prescription_card.dart';
+import '../../../widgets/appointment_status_header.dart';
 import '../booking_flow/booking_wizard_screen.dart';
 
 class PastAppointmentSummaryScreen extends StatefulWidget {

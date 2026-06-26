@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 enum VerificationStatus { none, pending, verified }
+enum UserRole { visitor, staff }
 
 class Appointment {
   final String id;
@@ -87,6 +88,139 @@ class AppState extends ChangeNotifier {
   String _userEmail = "alex.j@example.com";
   String _userPhone = "+1 (555) 0199";
   String _userCountry = "India";
+  UserRole _currentRole = UserRole.visitor;
+
+  // Staff Default Settings
+  String _defaultApproval = "Auto";
+  String _tokenCategory = "Priority A";
+
+  // Staff Portal Mock Data
+  final List<Map<String, dynamic>> _staffPendingApprovals = [
+    {
+      "id": "VIS-8924",
+      "name": "Michael Chen",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240",
+      "type": "Interview",
+      "time": "Today, 2:00 PM - 3:30 PM",
+      "reason": "Q3 Strategy Alignment Meeting with the Executive Team. Requires projector access.",
+      "status": "Pending"
+    },
+    {
+      "id": "VIS-8925",
+      "name": "Sarah Jenkins",
+      "avatar": "",
+      "type": "Delivery",
+      "time": "Tomorrow, 10:00 AM - 11:00 AM",
+      "reason": "IT Vendor - Network infrastructure maintenance and hardware delivery.",
+      "status": "Pending"
+    },
+    {
+      "id": "VIS-8926",
+      "name": "Mark Miller",
+      "avatar": "",
+      "type": "Delivery",
+      "time": "Today, 11:15 AM - 12:00 PM",
+      "reason": "Hardware supplies delivery for Floor 4.",
+      "status": "Pending"
+    },
+    {
+      "id": "VIS-8927",
+      "name": "Sarah Chen",
+      "avatar": "",
+      "type": "Interview",
+      "time": "Today, 10:30 AM - 11:15 AM",
+      "reason": "UX Designer candidate interview with HR.",
+      "status": "Pending"
+    }
+  ];
+
+  final List<Map<String, dynamic>> _liveQueue = [
+    {
+      "token": "T-842",
+      "name": "Sarah Jenkins",
+      "type": "Consultation",
+      "arrivalTime": "09:15 AM",
+      "gate": "B2",
+      "parking": "P-41",
+      "waitTime": "4 Min",
+      "status": "Serving"
+    },
+    {
+      "token": "T-843",
+      "name": "Michael Chen",
+      "type": "Meeting",
+      "arrivalTime": "09:20 AM",
+      "gate": "B2",
+      "parking": "P-41",
+      "waitTime": "4 Min",
+      "status": "Approaching"
+    },
+    {
+      "token": "T-844",
+      "name": "Elena Rodriguez",
+      "type": "Visit",
+      "arrivalTime": "09:30 AM",
+      "gate": "A1",
+      "parking": "P-12",
+      "waitTime": "12m",
+      "status": "Arrived"
+    },
+    {
+      "token": "T-845",
+      "name": "David Kim",
+      "type": "Delivery",
+      "arrivalTime": "09:35 AM",
+      "gate": "C4",
+      "parking": "--",
+      "waitTime": "18m",
+      "status": "Approaching"
+    },
+    {
+      "token": "T-846",
+      "name": "Aisha Patel",
+      "type": "Interview",
+      "arrivalTime": "09:42 AM",
+      "gate": "--",
+      "parking": "--",
+      "waitTime": "25m",
+      "status": "Pending"
+    }
+  ];
+
+  final List<Map<String, dynamic>> _recentTransactions = [
+    {
+      "id": "Visit #4029",
+      "name": "Julianne Moore",
+      "time": "10:30 AM",
+      "method": "WALLET",
+      "amount": 85.00,
+      "details": ""
+    },
+    {
+      "id": "Visit #4030",
+      "name": "Marcus Sterling",
+      "time": "11:15 AM",
+      "method": "DESK",
+      "amount": 112.50,
+      "details": "Parking Fee (Level 2) +\$12.50"
+    },
+    {
+      "id": "Visit #4031",
+      "name": "Elena Rodriguez",
+      "time": "11:45 AM",
+      "method": "WALLET",
+      "amount": 45.00,
+      "details": ""
+    },
+    {
+      "id": "Visit #4032",
+      "name": "David Kim",
+      "time": "12:10 PM",
+      "method": "PARKING",
+      "amount": 15.00,
+      "details": ""
+    }
+  ];
   
   // Document verification list
   final List<VerificationDocument> _documents = [
@@ -209,6 +343,16 @@ class AppState extends ChangeNotifier {
   String get userPhone => _userPhone;
   String get userCountry => _userCountry;
   List<VerificationDocument> get documents => _documents;
+  UserRole get currentRole => _currentRole;
+  String get defaultApproval => _defaultApproval;
+  String get tokenCategory => _tokenCategory;
+
+  List<Map<String, dynamic>> get staffPendingApprovals => 
+      _staffPendingApprovals.where((item) => item["status"] == "Pending").toList();
+
+  List<Map<String, dynamic>> get liveQueue => _liveQueue;
+
+  List<Map<String, dynamic>> get recentTransactions => _recentTransactions;
 
   VerificationStatus get verificationStatus {
     if (_documents.any((doc) => doc.status == "Verified")) {
@@ -304,10 +448,21 @@ class AppState extends ChangeNotifier {
   void login(String email, String password) {
     _isLoggedIn = true;
     _isGuest = false;
-    _userName = "Alex Johnson";
-    _userEmail = email.isNotEmpty ? email : "alex.j@example.com";
-    _userPhone = "+1 (555) 0199";
-    _userCountry = "India";
+    
+    final normalized = email.trim().toLowerCase();
+    if (normalized == "manager@zuruni.com" || normalized == "staff@zuruni.com") {
+      _currentRole = UserRole.staff;
+      _userName = "Alex Rivers";
+      _userEmail = email.isNotEmpty ? email : "manager@zuruni.com";
+      _userPhone = "+1 (555) 0244";
+      _userCountry = "USA";
+    } else {
+      _currentRole = UserRole.visitor;
+      _userName = "Alex Johnson";
+      _userEmail = email.isNotEmpty ? email : "alex.j@example.com";
+      _userPhone = "+1 (555) 0199";
+      _userCountry = "India";
+    }
     
     _documents.clear();
     _documents.addAll([
@@ -330,6 +485,7 @@ class AppState extends ChangeNotifier {
   void signup(String name, String email, String phone, String password) {
     _isLoggedIn = true;
     _isGuest = false;
+    _currentRole = UserRole.visitor;
     _userName = name;
     _userEmail = email;
     _userPhone = phone;
@@ -356,11 +512,93 @@ class AppState extends ChangeNotifier {
   void logout() {
     _isLoggedIn = false;
     _isGuest = false;
+    _currentRole = UserRole.visitor;
     _userName = "";
     _userEmail = "";
     _userPhone = "";
     _userCountry = "India";
     _documents.clear();
+    notifyListeners();
+  }
+
+  void toggleRoleForTesting() {
+    if (_currentRole == UserRole.visitor) {
+      _currentRole = UserRole.staff;
+      _userName = "Alex Rivers";
+      _userEmail = "manager@zuruni.com";
+      _userPhone = "+1 (555) 0244";
+      _userCountry = "USA";
+    } else {
+      _currentRole = UserRole.visitor;
+      _userName = "Alex Johnson";
+      _userEmail = "alex.j@example.com";
+      _userPhone = "+1 (555) 0199";
+      _userCountry = "India";
+    }
+    notifyListeners();
+  }
+
+  void setRole(UserRole role) {
+    _currentRole = role;
+    if (role == UserRole.staff) {
+      _userName = "Alex Rivers";
+      _userEmail = "manager@zuruni.com";
+      _userPhone = "+1 (555) 0244";
+      _userCountry = "USA";
+    } else {
+      _userName = "Alex Johnson";
+      _userEmail = "alex.j@example.com";
+      _userPhone = "+1 (555) 0199";
+      _userCountry = "India";
+    }
+    notifyListeners();
+  }
+
+  void approveVisitorRequest(String id) {
+    final index = _staffPendingApprovals.indexWhere((item) => item["id"] == id);
+    if (index != -1) {
+      _staffPendingApprovals[index]["status"] = "Approved";
+      notifyListeners();
+    }
+  }
+
+  void rejectVisitorRequest(String id) {
+    final index = _staffPendingApprovals.indexWhere((item) => item["id"] == id);
+    if (index != -1) {
+      _staffPendingApprovals[index]["status"] = "Rejected";
+      notifyListeners();
+    }
+  }
+
+  void bulkApproveAll() {
+    for (var item in _staffPendingApprovals) {
+      item["status"] = "Approved";
+    }
+    notifyListeners();
+  }
+
+  void advanceToken() {
+    if (_liveQueue.isNotEmpty) {
+      final activeIndex = _liveQueue.indexWhere((item) => item["status"] == "Serving");
+      if (activeIndex != -1 && activeIndex < _liveQueue.length - 1) {
+        _liveQueue[activeIndex]["status"] = "Completed";
+        
+        // Find next candidate that is approaching or arrived
+        final nextIndex = _liveQueue.indexWhere((item) => item["status"] == "Approaching" || item["status"] == "Arrived");
+        if (nextIndex != -1) {
+          _liveQueue[nextIndex]["status"] = "Serving";
+        }
+      } else {
+        // None serving, set first one as serving
+        _liveQueue[0]["status"] = "Serving";
+      }
+      notifyListeners();
+    }
+  }
+
+  void updateMeetingDefaults({required String approval, required String category}) {
+    _defaultApproval = approval;
+    _tokenCategory = category;
     notifyListeners();
   }
 

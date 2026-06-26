@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../theme/theme.dart';
-import '../state/app_state.dart';
-import '../widgets/prescription_card.dart';
-import '../widgets/empty_state_widget.dart';
+import '../../theme/theme.dart';
+import '../../state/app_state.dart';
+import '../../widgets/prescription_card.dart';
+import '../../widgets/empty_state_widget.dart';
 
 class MyPrescriptionsScreen extends StatefulWidget {
   const MyPrescriptionsScreen({super.key});

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../theme/theme.dart';
-import '../state/app_state.dart';
+import '../../theme/theme.dart';
+import '../../state/app_state.dart';
 import 'explore/org_profile_screen.dart';
 import 'visitor_access/appointment_overview_screen.dart';
-import 'auth/login_screen.dart';
+import '../auth/login_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({Key? key}) : super(key: key);

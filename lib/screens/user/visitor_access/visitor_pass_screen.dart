@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:provider/provider.dart';
-import '../../theme/theme.dart';
-import '../../state/app_state.dart';
-import '../../utils/time_utils.dart';
+import '../../../theme/theme.dart';
+import '../../../state/app_state.dart';
+import '../../../utils/time_utils.dart';
 
 class VisitorPassScreen extends StatelessWidget {
   final Appointment appointment;

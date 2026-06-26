@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../theme/theme.dart';
-import '../../state/app_state.dart';
+import '../../../theme/theme.dart';
+import '../../../state/app_state.dart';
 import 'appointment_confirmed_screen.dart';
 
 class BookingWizardScreen extends StatefulWidget {

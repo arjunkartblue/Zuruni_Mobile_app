@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../theme/theme.dart';
-import '../state/app_state.dart';
+import '../../theme/theme.dart';
+import '../../state/app_state.dart';
 import 'profile/edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {

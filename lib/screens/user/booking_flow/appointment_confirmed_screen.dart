@@ -3,9 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
-import '../../theme/theme.dart';
-import '../../state/app_state.dart';
-import '../../utils/time_utils.dart';
+import '../../../theme/theme.dart';
+import '../../../state/app_state.dart';
+import '../../../utils/time_utils.dart';
 
 class AppointmentConfirmedScreen extends StatefulWidget {
   final Appointment appointment;
