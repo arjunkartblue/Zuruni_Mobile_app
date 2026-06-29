@@ -101,36 +101,44 @@ class AppState extends ChangeNotifier {
       "name": "Michael Chen",
       "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240",
       "type": "Interview",
-      "time": "Today, 2:00 PM - 3:30 PM",
+      "time": "Today, 2:00 PM",
       "reason": "Q3 Strategy Alignment Meeting with the Executive Team. Requires projector access.",
-      "status": "Pending"
+      "status": "Pending",
+      "token": "T-440",
+      "arrived": false
     },
     {
       "id": "VIS-8925",
       "name": "Sarah Jenkins",
       "avatar": "",
       "type": "Delivery",
-      "time": "Tomorrow, 10:00 AM - 11:00 AM",
+      "time": "Tomorrow, 10:00 AM",
       "reason": "IT Vendor - Network infrastructure maintenance and hardware delivery.",
-      "status": "Pending"
-    },
-    {
-      "id": "VIS-8926",
-      "name": "Mark Miller",
-      "avatar": "",
-      "type": "Delivery",
-      "time": "Today, 11:15 AM - 12:00 PM",
-      "reason": "Hardware supplies delivery for Floor 4.",
-      "status": "Pending"
+      "status": "Pending",
+      "token": "T-441",
+      "arrived": false
     },
     {
       "id": "VIS-8927",
       "name": "Sarah Chen",
-      "avatar": "",
+      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=240",
       "type": "Interview",
-      "time": "Today, 10:30 AM - 11:15 AM",
+      "time": "Today, 10:30 AM",
       "reason": "UX Designer candidate interview with HR.",
-      "status": "Pending"
+      "status": "Pending",
+      "token": "T-442",
+      "arrived": false
+    },
+    {
+      "id": "VIS-8926",
+      "name": "Mark Miller",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=240",
+      "type": "Delivery",
+      "time": "Today, 11:15 AM",
+      "reason": "Hardware supplies delivery for Floor 4.",
+      "status": "Approved",
+      "token": "T-445",
+      "arrived": true
     }
   ];
 
@@ -349,6 +357,8 @@ class AppState extends ChangeNotifier {
 
   List<Map<String, dynamic>> get staffPendingApprovals => 
       _staffPendingApprovals.where((item) => item["status"] == "Pending").toList();
+
+  List<Map<String, dynamic>> get staffAllApprovals => _staffPendingApprovals;
 
   List<Map<String, dynamic>> get liveQueue => _liveQueue;
 
@@ -639,6 +649,27 @@ class AppState extends ChangeNotifier {
       _documents.add(newDoc);
     }
     notifyListeners();
+  }
+
+  void addPendingApproval(Map<String, dynamic> request) {
+    if (!request.containsKey("token")) {
+      final nextTokenNum = 440 + _staffPendingApprovals.length;
+      request["token"] = "T-$nextTokenNum";
+    }
+    if (!request.containsKey("arrived")) {
+      request["arrived"] = false;
+    }
+    _staffPendingApprovals.insert(0, request);
+    notifyListeners();
+  }
+
+  void toggleArrivalStatus(String id) {
+    final index = _staffPendingApprovals.indexWhere((item) => item["id"] == id);
+    if (index != -1) {
+      final current = _staffPendingApprovals[index]["arrived"] ?? false;
+      _staffPendingApprovals[index]["arrived"] = !current;
+      notifyListeners();
+    }
   }
 
   void uploadId(String docType, String docName, {String idNumber = ""}) {

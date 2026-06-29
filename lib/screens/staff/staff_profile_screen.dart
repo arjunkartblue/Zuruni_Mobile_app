@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/theme.dart';
 import '../../state/app_state.dart';
+import 'staff_edit_profile_screen.dart';
 
 class StaffProfileScreen extends StatelessWidget {
   const StaffProfileScreen({Key? key}) : super(key: key);
@@ -13,27 +14,6 @@ class StaffProfileScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceColor,
-      appBar: AppBar(
-        title: Text(
-          "Profile",
-          style: GoogleFonts.hankenGrotesk(
-            fontWeight: FontWeight.bold,
-            color: AppTheme.onSurfaceColor,
-          ),
-        ),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined, color: AppTheme.onSurfaceColor),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Settings menu loaded")),
-              );
-            },
-          ),
-        ],
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
@@ -45,98 +25,108 @@ class StaffProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                   boxShadow: AppTheme.ambientShadow,
                   border: Border.all(color: AppTheme.outlineVariantColor.withOpacity(0.15)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Avatar stack
-                    Stack(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white, width: 3),
-                            boxShadow: AppTheme.ambientShadow,
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.network(
-                              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240',
-                              width: 110,
-                              height: 110,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        // Amethyst Badge Overlay
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryColor,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 3),
-                            ),
-                            child: const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    // Name & Title
-                    Text(
-                      appState.userName,
-                      style: GoogleFonts.hankenGrotesk(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.onSurfaceColor,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Senior Manager, Human Resources",
-                      style: GoogleFonts.inter(
-                        fontSize: 15,
-                        color: AppTheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    // Admin verified pill
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFAF1F9),
-                        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.15)),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                    // Centered Header (Photo, Name, Verification Badge)
+                    Center(
+                      child: Column(
                         children: [
-                          const Icon(Icons.shield_outlined, size: 14, color: AppTheme.primaryColor),
-                          const SizedBox(width: 6),
+                          // Avatar stack
+                          Stack(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: Colors.white, width: 3),
+                                  boxShadow: AppTheme.ambientShadow,
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Image.network(
+                                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240',
+                                    width: 110,
+                                    height: 110,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              // Amethyst Badge Overlay
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryColor,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 3),
+                                  ),
+                                  child: const Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                    size: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          // Name & Title
                           Text(
-                            "VERIFIED BY ADMIN ON OCT 12",
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
+                            appState.userName,
+                            style: GoogleFonts.hankenGrotesk(
+                              fontSize: 24,
                               fontWeight: FontWeight.w800,
-                              color: AppTheme.primaryColor,
-                              letterSpacing: 0.5,
+                              color: AppTheme.onSurfaceColor,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Senior Manager, Human Resources",
+                            style: GoogleFonts.inter(
+                              fontSize: 15,
+                              color: AppTheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Admin verified pill
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFAF1F9),
+                              border: Border.all(color: AppTheme.primaryColor.withOpacity(0.15)),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.shield_outlined, size: 14, color: AppTheme.primaryColor),
+                                const SizedBox(width: 6),
+                                Text(
+                                  "VERIFIED BY ADMIN ON OCT 12",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.primaryColor,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(height: 24),
+                    const Divider(color: AppTheme.outlineVariantColor, height: 1),
+                    const SizedBox(height: 20),
                     const SizedBox(height: 24),
                     // Edit Profile button
                     SizedBox(
@@ -144,15 +134,16 @@ class StaffProfileScreen extends StatelessWidget {
                       height: 52,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Edit Profile feature coming soon")),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const StaffEditProfileScreen()),
                           );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryColor,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(26),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
                           ),
                           elevation: 0,
                         ),
@@ -174,7 +165,7 @@ class StaffProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                   boxShadow: AppTheme.ambientShadow,
                   border: Border.all(color: AppTheme.outlineVariantColor.withOpacity(0.15)),
                 ),
@@ -292,36 +283,7 @@ class StaffProfileScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
 
-              // Switch to Visitor Portal Button
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    appState.setRole(UserRole.visitor);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Switched to Visitor Portal"),
-                        backgroundColor: AppTheme.primaryColor,
-                      ),
-                    );
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.primaryColor,
-                    side: const BorderSide(color: AppTheme.primaryColor, width: 2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(26),
-                    ),
-                  ),
-                  icon: const Icon(Icons.swap_horiz),
-                  label: const Text(
-                    "Switch to Visitor Portal",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
             ],
           ),
         ),

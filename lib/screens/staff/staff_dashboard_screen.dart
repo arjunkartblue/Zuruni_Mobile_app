@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../theme/theme.dart';
 import '../../state/app_state.dart';
 import 'collections_dashboard_screen.dart';
+import 'book_for_visitor_screen.dart';
 
 class StaffDashboardScreen extends StatelessWidget {
   final Function(int) onViewAllApprovals;
@@ -82,14 +83,17 @@ class StaffDashboardScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   OutlinedButton(
                     onPressed: () {
-                      _showMockDialog(context, "Book on Behalf of Visitor");
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const BookForVisitorScreen()),
+                      );
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.onSurfaceColor,
-                      side: BorderSide(color: AppTheme.outlineVariantColor.withOpacity(0.5)),
+                      foregroundColor: AppTheme.primaryColor,
+                      side: const BorderSide(color: AppTheme.primaryColor),
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
                       ),
                     ),
                     child: const Text(
@@ -234,13 +238,13 @@ class StaffDashboardScreen extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 1.35,
+                childAspectRatio: 1.2,
                 children: [
                   // Appointments Stat
                   _buildStatCard(
                     context: context,
                     icon: Icons.calendar_today,
-                    iconBgColor: const Color(0xFFF3E8FF),
+                    iconBgColor: AppTheme.surfaceContainerLow,
                     iconColor: AppTheme.primaryColor,
                     value: "12",
                     suffix: " / 20 slots",
@@ -250,19 +254,19 @@ class StaffDashboardScreen extends StatelessWidget {
                   _buildStatCard(
                     context: context,
                     icon: Icons.fact_check,
-                    iconBgColor: const Color(0xFFEFF6FF),
-                    iconColor: Colors.blue.shade600,
+                    iconBgColor: AppTheme.surfaceContainerLow,
+                    iconColor: AppTheme.primaryColor,
                     value: pendingApprovals.length.toString(),
                     label: "Pending Approvals",
                     showRedDot: pendingApprovals.isNotEmpty,
-                    onTap: () => onViewAllApprovals(2), // Switches tab to Pending Approvals
+                    onTap: () => onViewAllApprovals(1), // Switches tab to Booking
                   ),
-                  // Queue Stat
+                  // Next Token Stat
                   _buildStatCard(
                     context: context,
                     icon: Icons.confirmation_number_outlined,
-                    iconBgColor: const Color(0xFFEEF2F6),
-                    iconColor: Colors.indigo.shade500,
+                    iconBgColor: AppTheme.surfaceContainerLow,
+                    iconColor: AppTheme.primaryColor,
                     value: "A-102",
                     label: "Next Token",
                   ),
@@ -270,8 +274,8 @@ class StaffDashboardScreen extends StatelessWidget {
                   _buildStatCard(
                     context: context,
                     icon: Icons.people_outline,
-                    iconBgColor: const Color(0xFFFDF2F8),
-                    iconColor: Colors.pink.shade500,
+                    iconBgColor: AppTheme.surfaceContainerLow,
+                    iconColor: AppTheme.primaryColor,
                     value: "8",
                     label: "Checked-in Today",
                   ),
@@ -283,8 +287,8 @@ class StaffDashboardScreen extends StatelessWidget {
               _buildStatCard(
                 context: context,
                 icon: Icons.payments_outlined,
-                iconBgColor: const Color(0xFFF0FDF4),
-                iconColor: Colors.green.shade600,
+                iconBgColor: AppTheme.surfaceContainerLow,
+                iconColor: AppTheme.primaryColor,
                 value: "\$1,240.00",
                 label: "Total Collections",
                 isFullWidth: true,
@@ -310,7 +314,7 @@ class StaffDashboardScreen extends StatelessWidget {
                     ),
                   ),
                   TextButton(
-                    onPressed: () => onViewAllApprovals(2), // Switch to approvals tab
+                    onPressed: () => onViewAllApprovals(1), // Switch to Booking tab
                     child: Text(
                       "View All",
                       style: TextStyle(
@@ -521,7 +525,7 @@ class StaffDashboardScreen extends StatelessWidget {
     VoidCallback? onTap,
   }) {
     final cardContent = Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -554,7 +558,7 @@ class StaffDashboardScreen extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           RichText(
             text: TextSpan(
               children: [

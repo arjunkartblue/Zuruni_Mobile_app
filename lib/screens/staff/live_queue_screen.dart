@@ -38,7 +38,7 @@ class LiveQueueScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(24.0),
                   decoration: BoxDecoration(
                     color: const Color(0xFF290A45), // Deep Amethyst Container
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                     boxShadow: AppTheme.ambientShadow,
                   ),
                   child: Column(
@@ -88,10 +88,10 @@ class LiveQueueScreen extends StatelessWidget {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
+                          foregroundColor: AppTheme.primaryColor,
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(24),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
                           ),
                           elevation: 0,
                         ),
@@ -119,7 +119,7 @@ class LiveQueueScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(20.0),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                     boxShadow: AppTheme.ambientShadow,
                     border: Border.all(color: AppTheme.outlineVariantColor.withOpacity(0.15)),
                   ),
@@ -202,7 +202,7 @@ class LiveQueueScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFAF1F9),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                       border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
                     ),
                     child: Text(
@@ -232,7 +232,7 @@ class LiveQueueScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXl),
                       boxShadow: AppTheme.ambientShadow,
                       border: Border.all(color: AppTheme.outlineVariantColor.withOpacity(0.15)),
                     ),
@@ -320,7 +320,7 @@ class LiveQueueScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -351,7 +351,7 @@ class LiveQueueScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

@@ -6,8 +6,9 @@ import '../../theme/theme.dart';
 import '../../state/app_state.dart';
 import 'staff_dashboard_screen.dart';
 import 'live_queue_screen.dart';
-import 'pending_approvals_screen.dart';
+import 'staff_booking_screen.dart';
 import 'staff_profile_screen.dart';
+import 'staff_edit_profile_screen.dart';
 
 class StaffNavigationShell extends StatefulWidget {
   const StaffNavigationShell({Key? key}) : super(key: key);
@@ -30,8 +31,8 @@ class _StaffNavigationShellState extends State<StaffNavigationShell> {
           _currentIndex = index;
         });
       }),
+      const StaffBookingScreen(),
       const LiveQueueScreen(),
-      const PendingApprovalsScreen(),
       const StaffProfileScreen(),
     ];
   }
@@ -41,28 +42,43 @@ class _StaffNavigationShellState extends State<StaffNavigationShell> {
     final appState = Provider.of<AppState>(context);
     final theme = Theme.of(context);
 
-    // Custom App Bar for Staff Dashboard, Queue, and Approvals
-    // Profile screen manages its own AppBar/Header
-    final bool showCustomAppBar = _currentIndex < 3;
-
-    final AppBar? customAppBar = showCustomAppBar
-        ? AppBar(
-            title: SvgPicture.asset(
-              'assets/images/zuruni_logo.svg',
-              height: 24,
-            ),
-            elevation: 0.5,
-            backgroundColor: AppTheme.surfaceColor,
-            surfaceTintColor: Colors.transparent,
-            leading: Builder(
-              builder: (context) => IconButton(
-                icon: const Icon(Icons.menu, color: AppTheme.onSurfaceColor),
+    // Custom App Bar for Staff Portal
+    final AppBar customAppBar = AppBar(
+      title: SvgPicture.asset(
+        'assets/images/zuruni_logo.svg',
+        height: 24,
+      ),
+      elevation: 0.5,
+      backgroundColor: AppTheme.surfaceColor,
+      surfaceTintColor: Colors.transparent,
+      leading: Builder(
+        builder: (context) => IconButton(
+          icon: const Icon(Icons.menu, color: AppTheme.onSurfaceColor),
+          onPressed: () {
+            Scaffold.of(context).openDrawer();
+          },
+        ),
+      ),
+      actions: _currentIndex == 3
+          ? [
+              TextButton(
                 onPressed: () {
-                  Scaffold.of(context).openDrawer();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const StaffEditProfileScreen()),
+                  );
                 },
+                child: const Text(
+                  "Edit",
+                  style: TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
               ),
-            ),
-            actions: [
+            ]
+          : [
               IconButton(
                 icon: const Icon(Icons.notifications_none_outlined, color: AppTheme.onSurfaceColor),
                 onPressed: () {
@@ -82,8 +98,7 @@ class _StaffNavigationShellState extends State<StaffNavigationShell> {
                 ),
               ),
             ],
-          )
-        : null;
+    );
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceColor,
@@ -113,8 +128,8 @@ class _StaffNavigationShellState extends State<StaffNavigationShell> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(child: _buildNavItem(0, Icons.dashboard_outlined, Icons.dashboard, "Dashboard")),
-            Expanded(child: _buildNavItem(1, Icons.queue_play_next_outlined, Icons.queue_play_next, "Queue")),
-            Expanded(child: _buildNavItem(2, Icons.rule_folder_outlined, Icons.rule_folder, "Approvals")),
+            Expanded(child: _buildNavItem(1, Icons.book_online_outlined, Icons.book_online, "Booking")),
+            Expanded(child: _buildNavItem(2, Icons.calendar_month_outlined, Icons.calendar_month, "Scheduling")),
             Expanded(child: _buildNavItem(3, Icons.person_outline, Icons.person, "Profile")),
           ],
         ),
@@ -282,9 +297,9 @@ class _StaffNavigationShellState extends State<StaffNavigationShell> {
                 ),
                 const SizedBox(height: 8),
                 _buildDrawerItem(
-                  icon: Icons.queue_play_next_outlined,
-                  activeIcon: Icons.queue_play_next,
-                  title: 'Live Queue',
+                  icon: Icons.book_online_outlined,
+                  activeIcon: Icons.book_online,
+                  title: 'Booking',
                   isSelected: _currentIndex == 1,
                   onTap: () {
                     Navigator.pop(context);
@@ -295,9 +310,9 @@ class _StaffNavigationShellState extends State<StaffNavigationShell> {
                 ),
                 const SizedBox(height: 8),
                 _buildDrawerItem(
-                  icon: Icons.rule_folder_outlined,
-                  activeIcon: Icons.rule_folder,
-                  title: 'Pending Approvals',
+                  icon: Icons.calendar_month_outlined,
+                  activeIcon: Icons.calendar_month,
+                  title: 'Scheduling',
                   isSelected: _currentIndex == 2,
                   onTap: () {
                     Navigator.pop(context);
@@ -310,7 +325,7 @@ class _StaffNavigationShellState extends State<StaffNavigationShell> {
                 _buildDrawerItem(
                   icon: Icons.person_outline,
                   activeIcon: Icons.person,
-                  title: 'Profile Defaults',
+                  title: 'Profile',
                   isSelected: _currentIndex == 3,
                   onTap: () {
                     Navigator.pop(context);

@@ -98,7 +98,7 @@ class _CollectionsDashboardScreenState extends State<CollectionsDashboardScreen>
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       color: AppTheme.surfaceContainerColor,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXl),
                       border: Border.all(color: AppTheme.outlineVariantColor.withOpacity(0.4)),
                     ),
                     child: Row(
@@ -165,15 +165,15 @@ class _CollectionsDashboardScreenState extends State<CollectionsDashboardScreen>
                   filled: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
                     borderSide: BorderSide(color: AppTheme.outlineVariantColor.withOpacity(0.4)),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
                     borderSide: BorderSide(color: AppTheme.outlineVariantColor.withOpacity(0.4)),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
                     borderSide: const BorderSide(color: AppTheme.primaryColor, width: 1.5),
                   ),
                 ),
@@ -218,7 +218,7 @@ class _CollectionsDashboardScreenState extends State<CollectionsDashboardScreen>
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
                             boxShadow: AppTheme.ambientShadow,
                             border: Border.all(color: AppTheme.outlineVariantColor.withOpacity(0.15)),
                           ),
@@ -310,7 +310,7 @@ class _CollectionsDashboardScreenState extends State<CollectionsDashboardScreen>
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFFAF1F9).withOpacity(0.5), // bg-surface-container-low/50
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -381,7 +381,7 @@ class _CollectionsDashboardScreenState extends State<CollectionsDashboardScreen>
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
