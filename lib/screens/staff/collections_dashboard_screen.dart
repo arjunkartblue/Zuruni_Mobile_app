@@ -34,13 +34,6 @@ class _CollectionsDashboardScreenState extends State<CollectionsDashboardScreen>
     return Scaffold(
       backgroundColor: AppTheme.surfaceColor,
       appBar: AppBar(
-        title: Text(
-          "Zuruni Booking",
-          style: GoogleFonts.hankenGrotesk(
-            fontWeight: FontWeight.bold,
-            color: AppTheme.onSurfaceColor,
-          ),
-        ),
         elevation: 0.5,
         backgroundColor: AppTheme.surfaceColor,
         surfaceTintColor: Colors.transparent,

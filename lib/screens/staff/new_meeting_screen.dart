@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../theme/theme.dart';
+import '../../state/app_state.dart';
 
 class NewMeetingScreen extends StatefulWidget {
   const NewMeetingScreen({super.key});
@@ -665,6 +667,47 @@ class _NewMeetingScreenState extends State<NewMeetingScreen> {
                             );
                             return;
                           }
+
+                          final appState = Provider.of<AppState>(context, listen: false);
+                          
+                          String dateGroup = "Upcoming";
+                          if (_selectedDate != null) {
+                            final now = DateTime.now();
+                            final today = DateTime(now.year, now.month, now.day);
+                            final target = DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day);
+                            final diff = target.difference(today).inDays;
+                            if (diff == 0) {
+                              dateGroup = "Today";
+                            } else if (diff == 1) {
+                              dateGroup = "Tomorrow";
+                            }
+                          } else {
+                            dateGroup = "Today";
+                          }
+
+                          String timeStr = "10:00 AM - 10:30 AM";
+                          if (_selectedTime != null) {
+                            final startStr = _formatTime(_selectedTime!);
+                            timeStr = "$startStr (${_selectedDuration})";
+                          }
+
+                          String initials = "AR";
+                          if (appState.userName.isNotEmpty) {
+                            try {
+                              initials = appState.userName.split(" ").map((s) => s[0]).join().toUpperCase();
+                            } catch (_) {}
+                          }
+
+                          appState.addScheduledMeeting({
+                            "title": _titleController.text,
+                            "time": timeStr,
+                            "location": appState.isHospitalStaff ? "Consultation Room 4" : "Boardroom A",
+                            "type": "Internal",
+                            "dateGroup": dateGroup,
+                            "host": appState.userName,
+                            "attendeeInitials": [initials, "MW"],
+                          });
+
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text("Meeting '${_titleController.text}' saved and published"),

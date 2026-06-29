@@ -48,7 +48,9 @@ class StaffProfileScreen extends StatelessWidget {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(16),
                                   child: Image.network(
-                                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240',
+                                    appState.isHospitalStaff
+                                        ? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=240'
+                                        : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240',
                                     width: 110,
                                     height: 110,
                                     fit: BoxFit.cover,
@@ -88,7 +90,9 @@ class StaffProfileScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            "Senior Manager, Human Resources",
+                            appState.isHospitalStaff
+                                ? "Consulting Physician, General Medicine"
+                                : "Senior Manager, Human Resources",
                             style: GoogleFonts.inter(
                               fontSize: 15,
                               color: AppTheme.onSurfaceVariant,

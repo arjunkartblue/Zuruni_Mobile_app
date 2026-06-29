@@ -261,7 +261,7 @@ class _LoginScreenState extends State<LoginScreen>
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    hintText: "Enter your email or phone number",
+                    hintText: "Enter email, phone, or doctor@vantage.com",
                     prefixIcon: Icon(Icons.person_outline,
                         color: AppTheme.outlineColor),
                   ),

@@ -10,6 +10,8 @@ import 'staff_booking_screen.dart';
 import 'staff_profile_screen.dart';
 import 'staff_edit_profile_screen.dart';
 import 'audit_log_screen.dart';
+import 'prescription_history_screen.dart';
+import 'staff_scheduling_screen.dart';
 
 class StaffNavigationShell extends StatefulWidget {
   const StaffNavigationShell({Key? key}) : super(key: key);
@@ -33,7 +35,7 @@ class _StaffNavigationShellState extends State<StaffNavigationShell> {
         });
       }),
       const StaffBookingScreen(),
-      const LiveQueueScreen(),
+      const StaffSchedulingScreen(),
       const StaffProfileScreen(),
     ];
   }
@@ -96,13 +98,15 @@ class _StaffNavigationShellState extends State<StaffNavigationShell> {
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(right: 16.0, left: 8.0),
-                  child: CircleAvatar(
-                    radius: 16,
-                    backgroundColor: AppTheme.surfaceContainerColor,
-                    backgroundImage: const NetworkImage(
-                      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240',
+                    child: CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppTheme.surfaceContainerColor,
+                      backgroundImage: NetworkImage(
+                        appState.isHospitalStaff
+                            ? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=240'
+                            : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240',
+                      ),
                     ),
-                  ),
                 ),
               ),
             ],
@@ -240,7 +244,9 @@ class _StaffNavigationShellState extends State<StaffNavigationShell> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(14),
                         child: Image.network(
-                          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240',
+                          appState.isHospitalStaff
+                              ? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=240'
+                              : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240',
                           width: 56,
                           height: 56,
                           fit: BoxFit.cover,
@@ -280,6 +286,15 @@ class _StaffNavigationShellState extends State<StaffNavigationShell> {
                   style: GoogleFonts.inter(
                     color: Colors.white.withOpacity(0.7),
                     fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  appState.staffOrganization,
+                  style: GoogleFonts.inter(
+                    color: Colors.white.withOpacity(0.5),
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
@@ -356,6 +371,36 @@ class _StaffNavigationShellState extends State<StaffNavigationShell> {
                     );
                   },
                 ),
+                const SizedBox(height: 8),
+                _buildDrawerItem(
+                  icon: Icons.queue_play_next_outlined,
+                  activeIcon: Icons.queue_play_next,
+                  title: 'Live Queue',
+                  isSelected: false,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LiveQueueScreen()),
+                    );
+                  },
+                ),
+                if (appState.isHospitalStaff) ...[
+                  const SizedBox(height: 8),
+                  _buildDrawerItem(
+                    icon: Icons.receipt_long_outlined,
+                    activeIcon: Icons.receipt_long,
+                    title: 'Prescription History',
+                    isSelected: false,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PrescriptionHistoryScreen()),
+                      );
+                    },
+                  ),
+                ],
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                   child: Divider(color: AppTheme.outlineVariantColor.withOpacity(0.3)),

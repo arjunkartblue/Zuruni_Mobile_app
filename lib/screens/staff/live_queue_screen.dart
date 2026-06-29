@@ -25,6 +25,21 @@ class LiveQueueScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppTheme.onSurfaceColor),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          "Live Queue",
+          style: GoogleFonts.hankenGrotesk(
+            fontWeight: FontWeight.bold,
+            color: AppTheme.onSurfaceColor,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),

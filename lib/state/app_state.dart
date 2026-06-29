@@ -89,6 +89,7 @@ class AppState extends ChangeNotifier {
   String _userPhone = "+1 (555) 0199";
   String _userCountry = "India";
   UserRole _currentRole = UserRole.visitor;
+  String _staffOrganization = "Zuruni Corporate HQ";
 
   // Staff Default Settings
   String _defaultApproval = "Auto";
@@ -139,6 +140,54 @@ class AppState extends ChangeNotifier {
       "status": "Approved",
       "token": "T-445",
       "arrived": true
+    }
+  ];
+
+  // Hospital-specific Mock Appointments (for Dr. Aris Thorne at Vantage Medical Group)
+  final List<Map<String, dynamic>> _hospitalPendingApprovals = [
+    {
+      "id": "VIS-1101",
+      "name": "Alex Johnson",
+      "avatar": "",
+      "type": "Consultation",
+      "time": "Today, 9:30 AM",
+      "reason": "Routine hypertension check-up and renewal of prescription.",
+      "status": "Approved",
+      "token": "T-15",
+      "arrived": true
+    },
+    {
+      "id": "VIS-1102",
+      "name": "Sarah Chen",
+      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=240",
+      "type": "Checkup",
+      "time": "Today, 10:30 AM",
+      "reason": "Chronic back pain evaluation, physical therapy follow-up.",
+      "status": "Pending",
+      "token": "T-16",
+      "arrived": false
+    },
+    {
+      "id": "VIS-1103",
+      "name": "Michael Chen",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240",
+      "type": "Lab Test",
+      "time": "Today, 2:00 PM",
+      "reason": "Fasting blood sugar panel & thyroid profile check.",
+      "status": "Pending",
+      "token": "T-17",
+      "arrived": false
+    },
+    {
+      "id": "VIS-1104",
+      "name": "David Kim",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=240",
+      "type": "Consultation",
+      "time": "Tomorrow, 10:00 AM",
+      "reason": "Mild fever, cough, and throat infection assessment.",
+      "status": "Approved",
+      "token": "T-18",
+      "arrived": false
     }
   ];
 
@@ -195,6 +244,40 @@ class AppState extends ChangeNotifier {
     }
   ];
 
+  // Hospital Live Token Queue
+  final List<Map<String, dynamic>> _hospitalLiveQueue = [
+    {
+      "token": "T-15",
+      "name": "Alex Johnson",
+      "type": "Consultation",
+      "arrivalTime": "09:20 AM",
+      "gate": "G-7749",
+      "parking": "B-12",
+      "waitTime": "0 Min",
+      "status": "Serving"
+    },
+    {
+      "token": "T-16",
+      "name": "Sarah Chen",
+      "type": "Checkup",
+      "arrivalTime": "09:45 AM",
+      "gate": "G-7801",
+      "parking": "B-15",
+      "waitTime": "15 Min",
+      "status": "Approaching"
+    },
+    {
+      "token": "T-17",
+      "name": "Michael Chen",
+      "type": "Lab Test",
+      "arrivalTime": "10:15 AM",
+      "gate": "--",
+      "parking": "--",
+      "waitTime": "30 Min",
+      "status": "Arrived"
+    }
+  ];
+
   final List<Map<String, dynamic>> _recentTransactions = [
     {
       "id": "Visit #4029",
@@ -228,6 +311,92 @@ class AppState extends ChangeNotifier {
       "amount": 15.00,
       "details": ""
     }
+  ];
+
+  // Hospital Transactions (Dr. Aris Thorne Billing)
+  final List<Map<String, dynamic>> _hospitalTransactions = [
+    {
+      "id": "Visit #8021",
+      "name": "Alex Johnson",
+      "time": "09:30 AM",
+      "method": "WALLET",
+      "amount": 150.00,
+      "details": "Consultation Fee (Dr. Thorne)"
+    },
+    {
+      "id": "Visit #8022",
+      "name": "Sarah Chen",
+      "time": "10:45 AM",
+      "method": "DESK",
+      "amount": 220.00,
+      "details": "Lab Test + Pharmacy Fee"
+    },
+    {
+      "id": "Visit #8023",
+      "name": "Michael Chen",
+      "time": "11:30 AM",
+      "method": "WALLET",
+      "amount": 90.00,
+      "details": "Pharmacy Fee"
+    }
+  ];
+
+  // Scheduled Meetings mock list
+  final List<Map<String, dynamic>> _scheduledMeetings = [
+    {
+      "title": "Q3 Strategy Alignment",
+      "time": "10:00 AM - 11:30 AM",
+      "location": "Boardroom A",
+      "type": "Internal",
+      "dateGroup": "Today",
+      "host": "Alex Rivers",
+      "attendeeInitials": ["AR", "MW", "SJ", "RC"],
+    },
+    {
+      "title": "Patient Consultation: Alex Johnson",
+      "time": "09:30 AM - 10:00 AM",
+      "location": "Consultation Room 4",
+      "type": "Public",
+      "dateGroup": "Today",
+      "host": "Dr. Aris Thorne",
+      "attendeeInitials": ["AT", "AJ"],
+    },
+    {
+      "title": "Weekly Sprint Planning",
+      "time": "02:00 PM - 03:00 PM",
+      "location": "Conference Room B",
+      "type": "Internal",
+      "dateGroup": "Today",
+      "host": "Sarah Chen",
+      "attendeeInitials": ["SC", "DK", "MC", "AP"],
+    },
+    {
+      "title": "Public Health Seminar Prep",
+      "time": "09:00 AM - 10:30 AM",
+      "location": "Auditorium 2",
+      "type": "Public",
+      "dateGroup": "Tomorrow",
+      "host": "Dr. Sarah Amethyst",
+      "attendeeInitials": ["SA", "AT", "RC"],
+    },
+    {
+      "title": "Clinical Board Review",
+      "time": "04:00 PM - 05:30 PM",
+      "location": "Boardroom A",
+      "type": "Internal",
+      "dateGroup": "Tomorrow",
+      "host": "Dr. Aris Thorne",
+      "attendeeInitials": ["AT", "SA", "EL", "MC"],
+    },
+    {
+      "title": "IT Infrastructure Sync",
+      "time": "11:00 AM - 12:00 PM",
+      "location": "Server Room Hub",
+      "type": "Internal",
+      "dateGroup": "Upcoming",
+      "host": "Mark Miller",
+      "attendeeInitials": ["MM", "SJ", "DK"],
+    },
   ];
   
   // Document verification list
@@ -354,15 +523,84 @@ class AppState extends ChangeNotifier {
   UserRole get currentRole => _currentRole;
   String get defaultApproval => _defaultApproval;
   String get tokenCategory => _tokenCategory;
+  String get staffOrganization => _staffOrganization;
+  bool get isHospitalStaff => _currentRole == UserRole.staff && _staffOrganization == "Vantage Medical Group";
+
+  List<Map<String, dynamic>> get scheduledMeetings => _scheduledMeetings;
+
+  List<Map<String, dynamic>> get _activeApprovalsList => 
+      isHospitalStaff ? _hospitalPendingApprovals : _staffPendingApprovals;
+
+  List<Map<String, dynamic>> get _activeLiveQueue => 
+      isHospitalStaff ? _hospitalLiveQueue : _liveQueue;
+
+  List<Map<String, dynamic>> get _activeTransactions => 
+      isHospitalStaff ? _hospitalTransactions : _recentTransactions;
 
   List<Map<String, dynamic>> get staffPendingApprovals => 
-      _staffPendingApprovals.where((item) => item["status"] == "Pending").toList();
+      _activeApprovalsList.where((item) => item["status"] == "Pending").toList();
 
-  List<Map<String, dynamic>> get staffAllApprovals => _staffPendingApprovals;
+  List<Map<String, dynamic>> get staffAllApprovals => _activeApprovalsList;
 
-  List<Map<String, dynamic>> get liveQueue => _liveQueue;
+  List<Map<String, dynamic>> get liveQueue => _activeLiveQueue;
 
-  List<Map<String, dynamic>> get recentTransactions => _recentTransactions;
+  List<Map<String, dynamic>> get recentTransactions => _activeTransactions;
+
+  /// Returns the next upcoming approval sorted chronologically by appointment time.
+  /// Prefers today's entries that haven't passed yet, then falls back to the
+  /// earliest overall entry. Returns null when there are no entries at all.
+  Map<String, dynamic>? get nextUpcomingApproval {
+    if (_activeApprovalsList.isEmpty) return null;
+
+    final now = DateTime.now();
+
+    DateTime? _parseTime(String timeStr) {
+      // Expected formats: "Today, 10:30 AM"  /  "Tomorrow, 2:00 PM"  /  raw "10:00 AM"
+      try {
+        String t = timeStr.toLowerCase();
+        DateTime base = DateTime(now.year, now.month, now.day);
+        if (t.startsWith("tomorrow")) {
+          base = base.add(const Duration(days: 1));
+          t = t.replaceFirst(RegExp(r'^tomorrow,?\s*'), '');
+        } else if (t.startsWith("today")) {
+          t = t.replaceFirst(RegExp(r'^today,?\s*'), '');
+        }
+        // t is now like "10:30 am" or "2:00 pm"
+        final parts = t.trim().split(RegExp(r'[\s:]'));
+        // parts: ["10", "30", "am"] or ["2", "00", "pm"]
+        int hour = int.parse(parts[0]);
+        final int minute = int.parse(parts[1]);
+        final String period = parts.length > 2 ? parts[2] : 'am';
+        if (period == 'pm' && hour != 12) hour += 12;
+        if (period == 'am' && hour == 12) hour = 0;
+        return DateTime(base.year, base.month, base.day, hour, minute);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    // Sort a copy by parsed time (nulls go last)
+    final sorted = List<Map<String, dynamic>>.from(_activeApprovalsList)
+      ..sort((a, b) {
+        final ta = _parseTime(a["time"] ?? "");
+        final tb = _parseTime(b["time"] ?? "");
+        if (ta == null && tb == null) return 0;
+        if (ta == null) return 1;
+        if (tb == null) return -1;
+        return ta.compareTo(tb);
+      });
+
+    // Prefer the first entry that is still in the future (or happening now)
+    for (final item in sorted) {
+      final t = _parseTime(item["time"] ?? "");
+      if (t != null && t.isAfter(now.subtract(const Duration(minutes: 30)))) {
+        return item;
+      }
+    }
+    // Fallback: return the first (earliest) entry if all are in the past
+    return sorted.first;
+  }
+
 
   VerificationStatus get verificationStatus {
     if (_documents.any((doc) => doc.status == "Verified")) {
@@ -460,14 +698,23 @@ class AppState extends ChangeNotifier {
     _isGuest = false;
     
     final normalized = email.trim().toLowerCase();
-    if (normalized == "manager@zuruni.com" || normalized == "staff@zuruni.com") {
+    if (normalized == "doctor@vantage.com" || normalized == "doctor@zuruni.com") {
       _currentRole = UserRole.staff;
+      _staffOrganization = "Vantage Medical Group";
+      _userName = "Dr. Aris Thorne";
+      _userEmail = email.isNotEmpty ? email : "doctor@vantage.com";
+      _userPhone = "+1 (555) 0312";
+      _userCountry = "USA";
+    } else if (normalized == "manager@zuruni.com" || normalized == "staff@zuruni.com") {
+      _currentRole = UserRole.staff;
+      _staffOrganization = "Zuruni Corporate HQ";
       _userName = "Alex Rivers";
       _userEmail = email.isNotEmpty ? email : "manager@zuruni.com";
       _userPhone = "+1 (555) 0244";
       _userCountry = "USA";
     } else {
       _currentRole = UserRole.visitor;
+      _staffOrganization = "Zuruni Corporate HQ";
       _userName = "Alex Johnson";
       _userEmail = email.isNotEmpty ? email : "alex.j@example.com";
       _userPhone = "+1 (555) 0199";
@@ -496,6 +743,7 @@ class AppState extends ChangeNotifier {
     _isLoggedIn = true;
     _isGuest = false;
     _currentRole = UserRole.visitor;
+    _staffOrganization = "Zuruni Corporate HQ";
     _userName = name;
     _userEmail = email;
     _userPhone = phone;
@@ -523,6 +771,7 @@ class AppState extends ChangeNotifier {
     _isLoggedIn = false;
     _isGuest = false;
     _currentRole = UserRole.visitor;
+    _staffOrganization = "Zuruni Corporate HQ";
     _userName = "";
     _userEmail = "";
     _userPhone = "";
@@ -534,12 +783,14 @@ class AppState extends ChangeNotifier {
   void toggleRoleForTesting() {
     if (_currentRole == UserRole.visitor) {
       _currentRole = UserRole.staff;
+      _staffOrganization = "Zuruni Corporate HQ";
       _userName = "Alex Rivers";
       _userEmail = "manager@zuruni.com";
       _userPhone = "+1 (555) 0244";
       _userCountry = "USA";
     } else {
       _currentRole = UserRole.visitor;
+      _staffOrganization = "Zuruni Corporate HQ";
       _userName = "Alex Johnson";
       _userEmail = "alex.j@example.com";
       _userPhone = "+1 (555) 0199";
@@ -551,11 +802,13 @@ class AppState extends ChangeNotifier {
   void setRole(UserRole role) {
     _currentRole = role;
     if (role == UserRole.staff) {
+      _staffOrganization = "Zuruni Corporate HQ";
       _userName = "Alex Rivers";
       _userEmail = "manager@zuruni.com";
       _userPhone = "+1 (555) 0244";
       _userCountry = "USA";
     } else {
+      _staffOrganization = "Zuruni Corporate HQ";
       _userName = "Alex Johnson";
       _userEmail = "alex.j@example.com";
       _userPhone = "+1 (555) 0199";
@@ -565,42 +818,43 @@ class AppState extends ChangeNotifier {
   }
 
   void approveVisitorRequest(String id) {
-    final index = _staffPendingApprovals.indexWhere((item) => item["id"] == id);
+    final index = _activeApprovalsList.indexWhere((item) => item["id"] == id);
     if (index != -1) {
-      _staffPendingApprovals[index]["status"] = "Approved";
+      _activeApprovalsList[index]["status"] = "Approved";
       notifyListeners();
     }
   }
 
   void rejectVisitorRequest(String id) {
-    final index = _staffPendingApprovals.indexWhere((item) => item["id"] == id);
+    final index = _activeApprovalsList.indexWhere((item) => item["id"] == id);
     if (index != -1) {
-      _staffPendingApprovals[index]["status"] = "Rejected";
+      _activeApprovalsList[index]["status"] = "Rejected";
       notifyListeners();
     }
   }
 
   void bulkApproveAll() {
-    for (var item in _staffPendingApprovals) {
+    for (var item in _activeApprovalsList) {
       item["status"] = "Approved";
     }
     notifyListeners();
   }
 
   void advanceToken() {
-    if (_liveQueue.isNotEmpty) {
-      final activeIndex = _liveQueue.indexWhere((item) => item["status"] == "Serving");
-      if (activeIndex != -1 && activeIndex < _liveQueue.length - 1) {
-        _liveQueue[activeIndex]["status"] = "Completed";
+    final queue = _activeLiveQueue;
+    if (queue.isNotEmpty) {
+      final activeIndex = queue.indexWhere((item) => item["status"] == "Serving");
+      if (activeIndex != -1 && activeIndex < queue.length - 1) {
+        queue[activeIndex]["status"] = "Completed";
         
         // Find next candidate that is approaching or arrived
-        final nextIndex = _liveQueue.indexWhere((item) => item["status"] == "Approaching" || item["status"] == "Arrived");
+        final nextIndex = queue.indexWhere((item) => item["status"] == "Approaching" || item["status"] == "Arrived");
         if (nextIndex != -1) {
-          _liveQueue[nextIndex]["status"] = "Serving";
+          queue[nextIndex]["status"] = "Serving";
         }
       } else {
         // None serving, set first one as serving
-        _liveQueue[0]["status"] = "Serving";
+        queue[0]["status"] = "Serving";
       }
       notifyListeners();
     }
@@ -653,21 +907,21 @@ class AppState extends ChangeNotifier {
 
   void addPendingApproval(Map<String, dynamic> request) {
     if (!request.containsKey("token")) {
-      final nextTokenNum = 440 + _staffPendingApprovals.length;
+      final nextTokenNum = 440 + _activeApprovalsList.length;
       request["token"] = "T-$nextTokenNum";
     }
     if (!request.containsKey("arrived")) {
       request["arrived"] = false;
     }
-    _staffPendingApprovals.insert(0, request);
+    _activeApprovalsList.insert(0, request);
     notifyListeners();
   }
 
   void toggleArrivalStatus(String id) {
-    final index = _staffPendingApprovals.indexWhere((item) => item["id"] == id);
+    final index = _activeApprovalsList.indexWhere((item) => item["id"] == id);
     if (index != -1) {
-      final current = _staffPendingApprovals[index]["arrived"] ?? false;
-      _staffPendingApprovals[index]["arrived"] = !current;
+      final current = _activeApprovalsList[index]["arrived"] ?? false;
+      _activeApprovalsList[index]["arrived"] = !current;
       notifyListeners();
     }
   }
@@ -714,6 +968,11 @@ class AppState extends ChangeNotifier {
 
   void addAppointment(Appointment appointment) {
     _appointments.insert(0, appointment);
+    notifyListeners();
+  }
+
+  void addScheduledMeeting(Map<String, dynamic> meeting) {
+    _scheduledMeetings.insert(0, meeting);
     notifyListeners();
   }
 

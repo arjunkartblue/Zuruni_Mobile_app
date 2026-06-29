@@ -7,6 +7,7 @@ import 'collections_dashboard_screen.dart';
 import 'book_for_visitor_screen.dart';
 import 'pending_approvals_list_screen.dart';
 import 'new_meeting_screen.dart';
+import 'booking_details_screen.dart';
 
 class StaffDashboardScreen extends StatelessWidget {
   final Function(int) onViewAllApprovals;
@@ -124,130 +125,217 @@ class StaffDashboardScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Up Next Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24.0),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF3B0764), // Deep Amethyst
-                      Color(0xFF290A45), // Dark Amethyst
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: AppTheme.ambientShadow,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Up Next Label & Calendar icon
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white.withOpacity(0.15), width: 1),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF10B981), // Pulsing green dot
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                "UP NEXT • 10:00 AM",
-                                style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.calendar_today_outlined, color: Colors.white70, size: 20),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      "James Wilson",
-                      style: GoogleFonts.hankenGrotesk(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
+              // Up Next Card — dynamically driven by the next appointment in the queue
+              Builder(builder: (context) {
+                final next = appState.nextUpcomingApproval;
+                if (next == null) {
+                  // Empty state — no appointments
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24.0),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF3B0764), Color(0xFF290A45)],
                       ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: AppTheme.ambientShadow,
                     ),
-                    const SizedBox(height: 4),
-                    Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.place_outlined, color: Colors.white70, size: 16),
-                        const SizedBox(width: 4),
+                        const Icon(Icons.event_busy_outlined, color: Colors.white54, size: 32),
+                        const SizedBox(height: 12),
                         Text(
-                          "Boardroom A",
+                          "No upcoming appointments",
+                          style: GoogleFonts.hankenGrotesk(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Your schedule is clear for now.",
                           style: GoogleFonts.inter(
-                            color: Colors.white70,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                            color: Colors.white60,
+                            fontSize: 13,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SizedBox(
-                            height: 48,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                _showMockDialog(context, "Meeting Details: James Wilson");
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white.withOpacity(0.9),
-                                foregroundColor: const Color(0xFF290A45),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
+                  );
+                }
+
+                final String visitorName = next["name"] ?? "—";
+                final String timeLabel = next["time"] ?? "—";
+                final String visitType = next["type"] ?? "Visit";
+                final String status = next["status"] ?? "Pending";
+
+                // Extract just the time portion for the pill (e.g. "Today, 10:30 AM" → "10:30 AM")
+                String timePill = timeLabel;
+                if (timePill.toLowerCase().startsWith("today,")) {
+                  timePill = timePill.substring(timePill.indexOf(",") + 1).trim();
+                } else if (timePill.toLowerCase().startsWith("tomorrow,")) {
+                  timePill = "Tomorrow • ${timePill.substring(timePill.indexOf(",") + 1).trim()}";
+                }
+
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24.0),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF3B0764), Color(0xFF290A45)],
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: AppTheme.ambientShadow,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // UP NEXT pill + calendar icon row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.white.withOpacity(0.15), width: 1),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF10B981),
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
-                                elevation: 0,
-                              ),
-                              child: const Text(
-                                "View Details",
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                const SizedBox(width: 6),
+                                Text(
+                                  "UP NEXT • $timePill",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.calendar_today_outlined, color: Colors.white70, size: 20),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Visitor name (large)
+                      Text(
+                        visitorName,
+                        style: GoogleFonts.hankenGrotesk(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+
+                      // Visit type + status row
+                      Row(
+                        children: [
+                          const Icon(Icons.badge_outlined, color: Colors.white70, size: 16),
+                          const SizedBox(width: 4),
+                          Text(
+                            visitType,
+                            style: GoogleFonts.inter(
+                              color: Colors.white70,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: status == "Approved"
+                                  ? const Color(0xFF10B981).withOpacity(0.25)
+                                  : Colors.white.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              status.toUpperCase(),
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                color: status == "Approved"
+                                    ? const Color(0xFF6EE7B7)
+                                    : Colors.white70,
+                                letterSpacing: 0.4,
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Action buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 48,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => BookingDetailsScreen(item: next),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white.withOpacity(0.9),
+                                  foregroundColor: const Color(0xFF290A45),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: const Text(
+                                  "View Details",
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
                           ),
-                          child: IconButton(
-                            icon: const Icon(Icons.more_horiz, color: Colors.white),
-                            onPressed: () {},
+                          const SizedBox(width: 12),
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.more_horiz, color: Colors.white),
+                              onPressed: () {},
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }),
               const SizedBox(height: 24),
 
               // Stats Grid
