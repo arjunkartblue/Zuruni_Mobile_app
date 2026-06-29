@@ -600,14 +600,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     margin: const EdgeInsets.only(right: 16.0, bottom: 8),
                     decoration: BoxDecoration(
                       color: isVerified ? AppTheme.primaryColor : Colors.white,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                      border: isVerified ? null : Border.all(color: AppTheme.outlineVariantColor),
+                      borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                       boxShadow: AppTheme.ambientShadow,
                     ),
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                        borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                         onTap: () {
                           // Tap opens the dashboard for verified appointment
                           if (isVerified) {
@@ -1015,14 +1014,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 margin: const EdgeInsets.only(bottom: 16.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                  border: Border.all(color: AppTheme.outlineVariantColor),
+                  borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                   boxShadow: AppTheme.ambientShadow,
                 ),
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                    borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                     onTap: () {
                       Navigator.push(
                         context,

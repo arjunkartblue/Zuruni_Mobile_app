@@ -297,8 +297,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                         padding: const EdgeInsets.all(20.0),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFF1EBF1)),
+                          borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                           boxShadow: AppTheme.ambientShadow,
                         ),
                         child: Column(

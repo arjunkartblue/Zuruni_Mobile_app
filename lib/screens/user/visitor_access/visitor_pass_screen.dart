@@ -80,8 +80,7 @@ class VisitorPassScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFF1EBF1)),
+                  borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                   boxShadow: AppTheme.ambientShadow,
                 ),
                 child: Column(
@@ -259,8 +258,7 @@ class VisitorPassScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFF1EBF1)),
+        borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
         boxShadow: AppTheme.ambientShadow,
       ),
       child: Column(
@@ -271,7 +269,7 @@ class VisitorPassScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: const BoxDecoration(
               color: Color(0xFFFAF5FF), // light purple
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radius2Xl)),
             ),
             child: Row(
               children: [

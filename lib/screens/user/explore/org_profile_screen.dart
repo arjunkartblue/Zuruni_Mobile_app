@@ -358,8 +358,7 @@ class OrgProfileScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFF1EBF1)),
+                            borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                             boxShadow: AppTheme.ambientShadow,
                           ),
                           child: Column(
@@ -458,8 +457,7 @@ class OrgProfileScreen extends StatelessWidget {
                               padding: const EdgeInsets.all(16.0),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const Color(0xFFF1EBF1)),
+                                borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                                 boxShadow: AppTheme.ambientShadow,
                               ),
                               child: Row(
@@ -544,7 +542,7 @@ class OrgProfileScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
                             color: AppTheme.primaryColor,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                           ),
                           child: Stack(
                             children: [
@@ -607,8 +605,7 @@ class OrgProfileScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFF1EBF1)),
+                            borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                             boxShadow: AppTheme.ambientShadow,
                           ),
                           child: Column(

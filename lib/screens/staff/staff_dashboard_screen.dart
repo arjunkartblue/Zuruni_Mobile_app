@@ -5,6 +5,8 @@ import '../../theme/theme.dart';
 import '../../state/app_state.dart';
 import 'collections_dashboard_screen.dart';
 import 'book_for_visitor_screen.dart';
+import 'pending_approvals_list_screen.dart';
+import 'new_meeting_screen.dart';
 
 class StaffDashboardScreen extends StatelessWidget {
   final Function(int) onViewAllApprovals;
@@ -13,6 +15,20 @@ class StaffDashboardScreen extends StatelessWidget {
     Key? key,
     required this.onViewAllApprovals,
   }) : super(key: key);
+
+  String _getLiveDate() {
+    final now = DateTime.now();
+    final weekdays = [
+      "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+    ];
+    final months = [
+      "January", "February", "March", "April", "May", "June", 
+      "July", "August", "September", "October", "November", "December"
+    ];
+    final weekday = weekdays[now.weekday - 1];
+    final month = months[now.month - 1];
+    return "$weekday, $month ${now.day}";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +45,7 @@ class StaffDashboardScreen extends StatelessWidget {
             children: [
               // Header Section
               Text(
-                "Thursday, October 26".toUpperCase(),
+                _getLiveDate().toUpperCase(),
                 style: GoogleFonts.inter(
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
@@ -63,7 +79,10 @@ class StaffDashboardScreen extends StatelessWidget {
                 children: [
                   ElevatedButton.icon(
                     onPressed: () {
-                      _showMockDialog(context, "New Meeting Setup");
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const NewMeetingScreen()),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
@@ -314,7 +333,14 @@ class StaffDashboardScreen extends StatelessWidget {
                     ),
                   ),
                   TextButton(
-                    onPressed: () => onViewAllApprovals(1), // Switch to Booking tab
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PendingApprovalsListScreen(),
+                        ),
+                      );
+                    },
                     child: Text(
                       "View All",
                       style: TextStyle(

@@ -177,8 +177,7 @@ class _AppointmentConfirmedScreenState extends State<AppointmentConfirmedScreen>
                 padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                  border: Border.all(color: AppTheme.outlineVariantColor),
+                  borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                   boxShadow: AppTheme.ambientShadow,
                 ),
                 child: Column(
@@ -387,8 +386,7 @@ class _AppointmentConfirmedScreenState extends State<AppointmentConfirmedScreen>
                 padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                  border: Border.all(color: AppTheme.outlineVariantColor),
+                  borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                   boxShadow: AppTheme.ambientShadow,
                 ),
                 child: Column(
@@ -503,8 +501,7 @@ class _AppointmentConfirmedScreenState extends State<AppointmentConfirmedScreen>
                 padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                  border: Border.all(color: AppTheme.outlineVariantColor),
+                  borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                   boxShadow: AppTheme.ambientShadow,
                 ),
                 child: Column(
@@ -531,8 +528,7 @@ class _AppointmentConfirmedScreenState extends State<AppointmentConfirmedScreen>
                 padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFAF5FF),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                  border: Border.all(color: AppTheme.outlineVariantColor),
+                  borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                   boxShadow: AppTheme.ambientShadow,
                 ),
                 child: Column(
@@ -758,61 +754,98 @@ class _AppointmentConfirmedScreenState extends State<AppointmentConfirmedScreen>
         final isActive = item["active"] as bool;
         final isLast = index == items.length - 1;
 
+        String description = "";
+        if (item["title"] == "Entry") {
+          description = isActive ? "Token scanned at Main Gate" : "Awaiting main gate verification";
+        } else if (item["title"] == "Meeting Starts") {
+          description = isActive ? "Checked in by receptionist" : "Awaiting receptionist check-in";
+        } else if (item["title"] == "Exit") {
+          description = isActive ? "Checked out successfully" : "Awaiting departure";
+        } else if (item["title"] == "Parking Checkout") {
+          description = isActive ? "Parking slot released" : "Awaiting vehicle departure";
+        }
+
         return IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Time column
-              SizedBox(
-                width: 75,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  child: Text(
-                    item["time"] as String,
-                    style: GoogleFonts.jetBrainsMono(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              
-              // Indicator column
+              // Indicator column (circle checkmark / grey dot + line)
               Column(
                 children: [
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 4),
                   Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: isActive ? AppTheme.primaryColor : const Color(0xFFCEC3D1),
-                      shape: BoxShape.circle,
-                    ),
+                    width: 24,
+                    height: 24,
+                    alignment: Alignment.center,
+                    child: isActive
+                        ? Container(
+                            width: 22,
+                            height: 22,
+                            decoration: const BoxDecoration(
+                              color: Colors.black,
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 12,
+                            ),
+                          )
+                        : Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFCBD5E1),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                   ),
                   if (!isLast)
                     Expanded(
                       child: Container(
-                        width: 1.5,
-                        color: const Color(0xFFCEC3D1),
+                        width: 2.0,
+                        color: const Color(0xFFE2E8F0),
                       ),
                     ),
                 ],
               ),
               const SizedBox(width: 16),
               
-              // Title column
+              // Text Content Column (Title, Description, Time)
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10.0),
-                  child: Text(
-                    item["title"] as String,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.onSurfaceColor,
-                    ),
+                  padding: const EdgeInsets.only(bottom: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item["title"] as String,
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: isActive ? AppTheme.onSurfaceColor : AppTheme.onSurfaceVariant.withOpacity(0.6),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        description,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: isActive ? AppTheme.onSurfaceVariant : AppTheme.onSurfaceVariant.withOpacity(0.5),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item["time"] as String,
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: isActive ? AppTheme.onSurfaceVariant.withOpacity(0.7) : AppTheme.onSurfaceVariant.withOpacity(0.4),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

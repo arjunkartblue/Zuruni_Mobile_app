@@ -183,8 +183,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-        border: Border.all(color: AppTheme.outlineVariantColor),
+        borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
         boxShadow: AppTheme.ambientShadow,
       ),
       child: Column(
@@ -781,8 +780,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-            border: Border.all(color: AppTheme.outlineVariantColor),
+            borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
             boxShadow: AppTheme.ambientShadow,
           ),
           child: Column(
@@ -1401,8 +1399,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           width: double.infinity,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-            border: Border.all(color: AppTheme.outlineVariantColor),
+            borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
             boxShadow: AppTheme.ambientShadow,
           ),
           child: Column(
@@ -1487,8 +1484,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-            border: Border.all(color: AppTheme.outlineVariantColor),
+            borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
             boxShadow: AppTheme.ambientShadow,
           ),
           child: Column(
@@ -1737,8 +1733,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-            border: Border.all(color: AppTheme.outlineVariantColor),
+            borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
             boxShadow: AppTheme.ambientShadow,
           ),
           child: Column(

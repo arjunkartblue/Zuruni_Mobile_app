@@ -9,6 +9,7 @@ import 'live_queue_screen.dart';
 import 'staff_booking_screen.dart';
 import 'staff_profile_screen.dart';
 import 'staff_edit_profile_screen.dart';
+import 'audit_log_screen.dart';
 
 class StaffNavigationShell extends StatefulWidget {
   const StaffNavigationShell({Key? key}) : super(key: key);
@@ -87,13 +88,20 @@ class _StaffNavigationShellState extends State<StaffNavigationShell> {
                   );
                 },
               ),
-              Padding(
-                padding: const EdgeInsets.only(right: 16.0, left: 8.0),
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundColor: AppTheme.surfaceContainerColor,
-                  backgroundImage: const NetworkImage(
-                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240',
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _currentIndex = 3; // Navigate to Profile tab
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16.0, left: 8.0),
+                  child: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: AppTheme.surfaceContainerColor,
+                    backgroundImage: const NetworkImage(
+                      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=240',
+                    ),
                   ),
                 ),
               ),
@@ -332,6 +340,20 @@ class _StaffNavigationShellState extends State<StaffNavigationShell> {
                     setState(() {
                       _currentIndex = 3;
                     });
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildDrawerItem(
+                  icon: Icons.history_toggle_off_outlined,
+                  activeIcon: Icons.history_toggle_off,
+                  title: 'Audit Log',
+                  isSelected: false,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AuditLogScreen()),
+                    );
                   },
                 ),
                 Padding(

@@ -312,8 +312,7 @@ class _PastAppointmentSummaryScreenState extends State<PastAppointmentSummaryScr
                       padding: const EdgeInsets.all(20.0),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                        border: Border.all(color: AppTheme.outlineVariantColor),
+                        borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
                         boxShadow: AppTheme.ambientShadow,
                       ),
                       child: Column(
